@@ -6,8 +6,7 @@
   <title>VOIDSCREAM</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <!-- GEMMA 3 270M WLLAMA (optimized) -->
- <!-- wllama CDN disabled (MIME nosniff fix – Gemma now uses safe fallback only) -->
+<!-- wllama CDN disabled (MIME nosniff fix) -->
 <script>
 console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00ffff;font-weight:bold');
 </script>
@@ -813,7 +812,7 @@ function renderMoodPicker() {
       const el = document.getElementById('saveToggle');
       el.textContent = saveToThisAlterOnly ? "THIS ALTER ONLY" : "SYSTEM SHARE";
     }
-  function showAltersModal() {
+ function showAltersModal() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   const list = document.getElementById('alters-list');
@@ -831,6 +830,10 @@ function renderMoodPicker() {
     const div = document.createElement('div');
     div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer transition-all ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'} ${unread > 0 ? 'ring-2 ring-offset-2 ring-offset-black animate-pulse' : ''}`;
     div.style.boxShadow = unread > 0 ? `0 0 20px ${alt.color}` : 'none';
+    let badgeHTML = '';
+    if (unread > 0) {
+      badgeHTML = `<div class="px-4 py-1 rounded-3xl text-xs font-black flex items-center gap-2" style="background:${alt.color}; color:#0a001f;">● ${unread} <span class="text-[9px] opacity-70">from ${alt.name}</span></div>`;
+    }
     div.innerHTML = `
       <img src="${alt.avatar}" class="w-12 h-12 rounded-2xl border-2" style="border-color:${alt.color}">
       <div class="flex-1">
@@ -844,7 +847,7 @@ function renderMoodPicker() {
           <option value="Complicated" ${status==='Complicated'?'selected':''}>Complicated</option>
         </select>
       </div>
-      ${unread > 0 ? `<div class="px-4 py-1 rounded-3xl text-xs font-black flex items-center gap-2" style="background:${alt.color}; color:#0a001f;">● ${unread} <span class="text-[9px] opacity-70">from ${alt.name}</span></div>` : ''}
+      ${badgeHTML}
       ${hasPw ? `<i onclick="event.stopImmediatePropagation()" class="fa fa-lock text-red-400"></i>` : ''}
       <div class="flex gap-3">
         <label class="cursor-pointer"><i class="fa fa-camera text-2xl neon-cyan"></i><input type="file" accept="image/*" onchange="uploadAvatar(${i}, event)" class="hidden"></label>
