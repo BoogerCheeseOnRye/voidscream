@@ -8,21 +8,21 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
     :root { --abyss: #0a001f; }
-    html, body, .overflow-y-auto, #feed, #alters-list, #commentsList, #calendarGrid, #dmMessages {
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+    html, body, .overflow-y-auto, #feed, #alters-list, #commentsList, #calendarGrid, #dmMessages { 
+      scrollbar-width: none; 
+      -ms-overflow-style: none; 
     }
-    html::-webkit-scrollbar, body::-webkit-scrollbar, .overflow-y-auto::-webkit-scrollbar,
-    #feed::-webkit-scrollbar, #alters-list::-webkit-scrollbar, #commentsList::-webkit-scrollbar,
+    html::-webkit-scrollbar, body::-webkit-scrollbar, .overflow-y-auto::-webkit-scrollbar, 
+    #feed::-webkit-scrollbar, #alters-list::-webkit-scrollbar, #commentsList::-webkit-scrollbar, 
     #calendarGrid::-webkit-scrollbar, #dmMessages::-webkit-scrollbar { display: none; }
-    body {
-      background: var(--abyss);
-      font-family: system-ui, sans-serif;
-      height: 100dvh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      margin: 0;
+    body { 
+      background: var(--abyss); 
+      font-family: system-ui, sans-serif; 
+      height: 100dvh; 
+      overflow: hidden; 
+      display: flex; 
+      flex-direction: column; 
+      margin: 0; 
       position: relative;
     }
     @media (orientation: portrait) {
@@ -34,18 +34,18 @@
     .neon-pink { color: #ff00cc; text-shadow: 0 0 12px #ff00cc, 0 0 24px #ff00cc; }
     .neon-cyan { color: #00ffff; text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff; }
     .neon-lime { color: #ccff00; text-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00; }
-    .cyber-header {
-      text-align: center;
-      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem;
-      border-bottom: 2px solid #00ffff;
-      box-shadow: 0 0 15px #00ffff;
-      background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-left: 1rem;
-      padding-right: 1rem;
+    .cyber-header { 
+      text-align: center; 
+      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem; 
+      border-bottom: 2px solid #00ffff; 
+      box-shadow: 0 0 15px #00ffff; 
+      background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent); 
+      flex-shrink: 0; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      padding-left: 1rem; 
+      padding-right: 1rem; 
     }
     .card { background: #1a0033; border: 2px solid #ff00cc88; box-shadow: 0 0 20px #ff00cc, 0 0 40px #00ffff; transition: all 0.3s ease; }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
@@ -116,8 +116,10 @@
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
+
   <!-- ABYSS FALL LAYER -->
   <div id="abyss-fall"></div>
+
   <!-- GATE 1 -->
   <div id="gate1" class="fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
@@ -130,6 +132,7 @@
       <p class="text-[10px] text-zinc-500 mt-8">Single HTML file. Nothing leaves your device. No servers. No external access possible.</p>
     </div>
   </div>
+
   <!-- GATE 2 -->
   <div id="gate2" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
@@ -148,9 +151,10 @@
       </div>
     </div>
   </div>
+
   <!-- GATE 3: FIRST ALTER -->
   <div id="gate3" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
-    <div onclick="event.stopImmediatePropagation()" class="card rounded-3xl p-8 max-w-md text-center mx-4">
+    <div onclick="event.stopImmediatePropagation()" class="card rounded-3xl p-8 max-w-md mx-4 text-center">
       <h2 class="neon-pink text-3xl font-black mb-6">CREATE YOUR FIRST ALTER</h2>
       <p class="neon-cyan text-sm mb-8">This is your system. Give them a name and a face. Everything stays local forever.</p>
       <div class="mb-6">
@@ -170,6 +174,7 @@
       </div>
     </div>
   </div>
+
   <!-- MAIN APP -->
   <div id="app" class="hidden flex flex-col h-full">
     <!-- HEADER -->
