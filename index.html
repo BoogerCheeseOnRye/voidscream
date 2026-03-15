@@ -303,7 +303,7 @@
   <div id="screamDetailModal" onclick="if(event.target.id==='screamDetailModal')closeScreamDetail()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[70]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
-        <button onclick="showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+        <button onclick="closeScreamDetail();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
           <i class="fa fa-users text-xl"></i>
           <span class="font-bold">SWITCH ALTER</span>
         </button>
@@ -330,7 +330,7 @@
   <div id="calendarModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
       <div class="flex items-center justify-between mb-6">
-        <button onclick="showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+        <button onclick="closeCalendarModal();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
           <i class="fa fa-users text-xl"></i>
           <span class="font-bold">SWITCH ALTER</span>
         </button>
