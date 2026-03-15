@@ -89,6 +89,24 @@
       font-size: 24px;
       color: #0a001f;
       transition: all 0.3s;
+      position: relative;
+    }
+    .hub-menu-btn .dm-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #ff00cc;
+      color: #0a001f;
+      font-size: 10px;
+      font-weight: 900;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px #ff00cc;
+      padding: 0 4px;
     }
     .modal-full {
       width: 96% !important;
@@ -202,7 +220,7 @@
     <div id="hubMenu" class="hub-menu">
       <button onclick="openScreamModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-plus"></i></button>
       <button onclick="showAltersModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-users"></i></button>
-      <button onclick="openDMModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-envelope"></i></button>
+      <button onclick="openDMModal();toggleHubMenu()" id="dmHubBtn" class="hub-menu-btn"><i class="fa fa-envelope"></i><span id="dmBadge" class="dm-badge hidden">0</span></button>
     </div>
   </div>
   <!-- SCREAM COMPOSER MODAL -->
@@ -580,7 +598,7 @@
             <button onclick="killAlter(${i}); event.stopImmediatePropagation()" class="text-red-400"><i class="fa fa-trash"></i></button>
           </div>
         `;
-        div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button')) { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); closeAltersModal(); } };
+        div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button')) { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); updateDMNotificationBadge(); closeAltersModal(); } };
         list.appendChild(div);
       });
       setTimeout(drawMoodGraph, 100);
@@ -790,6 +808,7 @@
       const btn = document.getElementById('hubBtn');
       btn.classList.toggle('expanded');
       menu.classList.toggle('show');
+      updateDMNotificationBadge();
     }
     function openDMModal() {
       toggleHubMenu();
@@ -797,11 +816,13 @@
       list.innerHTML = '';
       alters.forEach((alt, i) => {
         if (i === currentAlterIndex) return;
+        const unread = unreadNotifications[i] || 0;
         const btn = document.createElement('div');
         btn.className = 'flex items-center gap-4 p-4 rounded-3xl cursor-pointer hover:bg-zinc-800';
         btn.innerHTML = `
           <img src="${alt.avatar}" class="w-12 h-12 rounded-2xl border-2" style="border-color:${alt.color}">
           <div class="flex-1"><div class="font-bold">${alt.name}</div><div class="text-xs neon-cyan">${alt.handle}</div></div>
+          ${unread > 0 ? `<div class="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">${unread}</div>` : ''}
         `;
         btn.onclick = () => openDMChat(i);
         list.appendChild(btn);
@@ -819,6 +840,7 @@
       unreadNotifications[targetIndex] = 0;
       saveData();
       renderDMChat();
+      updateDMNotificationBadge();
       document.getElementById('dmChatModal').classList.remove('hidden');
       setTimeout(() => { document.getElementById('dmInput').focus(); }, 100);
     }
@@ -853,6 +875,17 @@
       saveData();
       input.value = '';
       renderDMChat();
+      updateDMNotificationBadge();
+    }
+    function updateDMNotificationBadge() {
+      const unreadForCurrent = unreadNotifications[currentAlterIndex] || 0;
+      const badge = document.getElementById('dmBadge');
+      if (unreadForCurrent > 0) {
+        badge.textContent = unreadForCurrent > 99 ? '99+' : unreadForCurrent;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
     }
     function toggleCalendarMode() {
       calendarMode = calendarMode === 'alter' ? 'system' : 'alter';
@@ -992,7 +1025,7 @@
     }
     function executeNuke() {
       const cutoff = Date.now() - (pendingNukeMinutes * 60000);
-      screams = screams.filter(s => s.timestamp > cutoff);
+      screams = screams.filter(s => s.alterIndex !== currentAlterIndex || s.timestamp > cutoff);
       saveData();
       renderFeed();
       closeNukeConfirm();
@@ -1049,6 +1082,7 @@
       loadData();
       renderFeed();
       createFalling();
+      updateDMNotificationBadge();
       const feedCont = document.getElementById('feed-container');
       feedCont.style.overflowY = 'auto';
       feedCont.style.height = 'calc(100vh - 120px)';
