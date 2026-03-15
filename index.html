@@ -292,6 +292,21 @@
       </div>
     </div>
   </div>
+  <!-- FEEDBACK MODAL (CHANGE 2) -->
+  <div id="feedbackModal" onclick="if(event.target.id==='feedbackModal')closeFeedbackModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[57]">
+    <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <div id="feedbackAlterName" class="neon-lime font-bold text-xl"></div>
+        <button onclick="closeFeedbackModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <div class="neon-cyan text-sm mb-6">CONTACT DETAILS<br><span id="feedbackContact" class="text-xs"></span></div>
+      <textarea id="feedbackMessage" rows="6" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-cyan resize-none" placeholder="your feedback message..."></textarea>
+      <div class="flex gap-4 mt-8">
+        <button onclick="closeFeedbackModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">NEVERMIND</button>
+        <button onclick="sendFeedback()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SEND FEEDBACK</button>
+      </div>
+    </div>
+  </div>
   <!-- DM HUB MODAL -->
   <div id="dmHubModal" onclick="if(event.target.id==='dmHubModal')closeDMHub()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[65]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -475,14 +490,14 @@
     let returnToModal = null;
     let currentArchiveIndex = null;
     let saveToThisAlterOnly = true;
+    let feedbackTargetIndex = null;
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
 
-    // CHANGE 1: Expanded global text clearing to cover EVERY modal input
     function clearModalTextFields() {
       const fields = [
         'screamText','customMoodInput','mediaUrl','replyText','replyMedia',
         'dmInput','eulogyText','newAlterName','archiveSharedInput',
-        'archivePrivateInput','firstAlterName'
+        'archivePrivateInput','firstAlterName','feedbackMessage'
       ];
       fields.forEach(id => {
         const el = document.getElementById(id);
@@ -668,6 +683,7 @@
           ${unread > 0 ? `<div class="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">${unread}</div>` : ''}
           <div class="flex gap-3">
             <label class="cursor-pointer"><i class="fa fa-camera text-2xl neon-cyan"></i><input type="file" accept="image/*" onchange="uploadAvatar(${i}, event)" class="hidden"></label>
+            <button onclick="openFeedbackModal(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-lime border border-lime-400 rounded-3xl">FEEDBACK</button>
             <button onclick="killAlter(${i}); event.stopImmediatePropagation()" class="text-red-400"><i class="fa fa-trash"></i></button>
           </div>
         `;
@@ -773,6 +789,13 @@
       alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa' });
       saveData();
       document.getElementById('newAlterName').value = '';
+      showAltersModal();
+    }
+    function updateAlterHandle(index, newHandle) {
+      if (!newHandle) return;
+      if (!newHandle.startsWith('@')) newHandle = '@' + newHandle.trim().replace(/\s+/g, '');
+      alters[index].handle = newHandle;
+      saveData();
       showAltersModal();
     }
     function viewMedia(url) {
@@ -922,7 +945,7 @@
       document.getElementById('dmHubModal').classList.add('hidden');
     }
     function openDMChat(targetIndex) {
-      clearModalTextFields(); // CHANGE 2
+      clearModalTextFields();
       closeDMHub();
       currentDMTarget = targetIndex;
       const header = document.getElementById('dmChatHeader');
@@ -1196,7 +1219,7 @@
       reader.readAsDataURL(file);
     }
     function openMemoryArchive(idx) {
-      clearModalTextFields(); // CHANGE 2
+      clearModalTextFields();
       currentArchiveIndex = idx;
       const arch = archives[idx];
       document.getElementById('archiveAlterName').textContent = arch.name;
@@ -1271,6 +1294,40 @@
         closeMemoryArchiveModal();
         showAltersModal();
       }
+    }
+    // CHANGE 1: alter-specific feedback button added in showAltersModal (above)
+    function openFeedbackModal(index) {
+      clearModalTextFields();
+      feedbackTargetIndex = index;
+      const alt = alters[index];
+      document.getElementById('feedbackAlterName').textContent = alt.name;
+      document.getElementById('feedbackContact').innerHTML = `Handle: ${alt.handle}<br>Local contact only (offline)`;
+      document.getElementById('feedbackModal').classList.remove('hidden');
+      setTimeout(() => { document.getElementById('feedbackMessage').focus(); }, 100);
+    }
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').classList.add('hidden');
+    }
+    function sendFeedback() {
+      const msg = document.getElementById('feedbackMessage').value.trim();
+      if (!msg) return;
+      // simple local save as special scream for feedback
+      screams.unshift({
+        id: Date.now(),
+        alterIndex: currentAlterIndex,
+        text: `FEEDBACK for ${alters[feedbackTargetIndex].name}: ${msg}`,
+        media: null,
+        timestamp: Date.now(),
+        comments: [],
+        votes: { up: 0, down: 0 },
+        votedBy: {},
+        mood: '📬',
+        pinnedBy: []
+      });
+      saveData();
+      renderFeed();
+      alert("Feedback sent locally to the abyss.");
+      closeFeedbackModal();
     }
     function initApp() {
       loadData();
