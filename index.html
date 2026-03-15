@@ -292,7 +292,7 @@
       </div>
     </div>
   </div>
-  <!-- FEEDBACK MODAL (CHANGE 2) -->
+  <!-- FEEDBACK MODAL -->
   <div id="feedbackModal" onclick="if(event.target.id==='feedbackModal')closeFeedbackModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[57]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -505,6 +505,20 @@
       });
     }
 
+    // CHANGE 1: New alter guard (runs on every modal/button open past onboarding)
+    function ensureCurrentAlter() {
+      if (!alters || alters.length === 0) {
+        alert("No alter selected yet. Create one first.");
+        return false;
+      }
+      if (currentAlterIndex < 0 || currentAlterIndex >= alters.length) {
+        currentAlterIndex = 0;
+      }
+      updateComposerUI();
+      updateDMNotificationBadge();
+      return true;
+    }
+
     function loadData() {
       if (localStorage.getItem('voidscreams')) screams = JSON.parse(localStorage.getItem('voidscreams'));
       else screams = [];
@@ -632,6 +646,7 @@
     }
     function openScreamModal() {
       clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       if (alters.length === 0) return;
       updateComposerUI();
       renderMoodPicker();
@@ -671,6 +686,7 @@
     }
     function showAltersModal() {
       clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       const list = document.getElementById('alters-list');
       list.innerHTML = '';
       alters.forEach((alt, i) => {
@@ -891,6 +907,7 @@
     }
     function openReplyModal(commentIdx = null) {
       clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       closeScreamDetail();
       document.getElementById('replyModal').classList.remove('hidden');
       window.replyTargetComment = commentIdx;
@@ -916,6 +933,7 @@
       renderFeed();
     }
     function toggleHubMenu() {
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       const menu = document.getElementById('hubMenu');
       const btn = document.getElementById('hubBtn');
       btn.classList.toggle('expanded');
@@ -923,6 +941,7 @@
       updateDMNotificationBadge();
     }
     function openDMModal() {
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       toggleHubMenu();
       const list = document.getElementById('dmAltersList');
       list.innerHTML = '';
@@ -946,6 +965,7 @@
     }
     function openDMChat(targetIndex) {
       clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       closeDMHub();
       currentDMTarget = targetIndex;
       const header = document.getElementById('dmChatHeader');
@@ -1007,6 +1027,8 @@
       drawCalendarMoodGraph();
     }
     function openCalendarModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       calendarMode = 'alter';
       document.getElementById('calendarModeBtn').textContent = 'ALTER MODE';
       renderCalendar();
@@ -1120,6 +1142,7 @@
       reader.readAsText(file);
     }
     function openNukeModal() {
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       const deathSection = document.getElementById('alterDeathSection');
       deathSection.classList.toggle('hidden', currentAlterIndex !== 0);
       document.getElementById('nukeModal').classList.remove('hidden');
@@ -1129,6 +1152,7 @@
     }
     function openAlterDeathModal() {
       clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       closeNukeModal();
       document.getElementById('eulogyText').value = "They fought bravely in the shadows... They protected the system when no one else could...";
       document.getElementById('alterDeathModal').classList.remove('hidden');
@@ -1220,6 +1244,7 @@
     }
     function openMemoryArchive(idx) {
       clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       currentArchiveIndex = idx;
       const arch = archives[idx];
       document.getElementById('archiveAlterName').textContent = arch.name;
@@ -1295,9 +1320,9 @@
         showAltersModal();
       }
     }
-    // CHANGE 1: alter-specific feedback button added in showAltersModal (above)
     function openFeedbackModal(index) {
       clearModalTextFields();
+      if (!ensureCurrentAlter()) return; // CHANGE 2
       feedbackTargetIndex = index;
       const alt = alters[index];
       document.getElementById('feedbackAlterName').textContent = alt.name;
@@ -1311,7 +1336,6 @@
     function sendFeedback() {
       const msg = document.getElementById('feedbackMessage').value.trim();
       if (!msg) return;
-      // simple local save as special scream for feedback
       screams.unshift({
         id: Date.now(),
         alterIndex: currentAlterIndex,
@@ -1331,6 +1355,7 @@
     }
     function initApp() {
       loadData();
+      ensureCurrentAlter(); // CHANGE 2
       renderFeed();
       createFalling();
       updateDMNotificationBadge();
