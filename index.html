@@ -1742,10 +1742,21 @@ function applyTheme(themeKey) {
     saveData();
   }
 }
-    function resetTheme() {
-      applyTheme('abyss');
-      renderThemeGrid();
-    }
+   function resetTheme() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  const alter = alters[currentAlterIndex];
+  if (alter) {
+    alter.theme = null;
+    alter.mood = null; // clear sealed mood override too
+    delete alter.sealedMood;
+    saveData();
+  }
+  applyTheme('abyss');
+  renderThemeGrid();
+  loadCurrentTheme();
+  updateComposerUI();
+}
 function loadCurrentTheme() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
