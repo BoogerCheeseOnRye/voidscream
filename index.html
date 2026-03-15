@@ -1502,14 +1502,20 @@ async function sendDM() {
       renderFeed();
       closeNukeConfirm();
     }
-    function showGate2() {
-      document.getElementById('gate1').classList.add('hidden');
-      document.getElementById('gate2').classList.remove('hidden');
-    }
-    function showGate3() {
-      document.getElementById('gate2').classList.add('hidden');
-      document.getElementById('gate3').classList.remove('hidden');
-    }
+  function showGate2() {
+  clearModalTextFields();
+  document.getElementById('gate1').classList.add('hidden');
+  document.getElementById('gate2').classList.remove('hidden');
+  console.log('%c[VoidScream] Gate 2: security layer engaged', 'color:#ff00cc;font-weight:bold');
+}
+  function showGate3() {
+  clearModalTextFields();
+  checkPassword(() => {
+    document.getElementById('gate2').classList.add('hidden');
+    document.getElementById('gate3').classList.remove('hidden');
+    console.log('%c[VoidScream] Gate 3: first alter creation ready', 'color:#ff00cc;font-weight:bold');
+  });
+}
     function createFirstAlter() {
       const name = document.getElementById('firstAlterName').value.trim();
       if (!name) { alert("Alter name cannot be empty"); return; }
