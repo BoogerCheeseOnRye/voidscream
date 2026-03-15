@@ -646,14 +646,14 @@
         div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'}`;
         div.innerHTML = `
           <img src="${alt.avatar}" class="w-12 h-12 rounded-2xl border-2" style="border-color:${alt.color}">
-          <div class="flex-1"><div class="font-bold">${alt.name}</div><div class="text-xs neon-cyan">${alt.handle}</div></div>
+          <div class="flex-1"><div class="font-bold">${alt.name}</div><input type="text" value="${alt.handle}" class="bg-transparent border-b border-cyan-400 text-xs neon-cyan w-28 text-center outline-none px-1" onblur="updateAlterHandle(${i}, this.value)" style="font-family:monospace"></div>
           ${unread > 0 ? `<div class="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">${unread}</div>` : ''}
           <div class="flex gap-3">
             <label class="cursor-pointer"><i class="fa fa-camera text-2xl neon-cyan"></i><input type="file" accept="image/*" onchange="uploadAvatar(${i}, event)" class="hidden"></label>
             <button onclick="killAlter(${i}); event.stopImmediatePropagation()" class="text-red-400"><i class="fa fa-trash"></i></button>
           </div>
         `;
-        div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button')) { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); updateDMNotificationBadge(); closeAltersModal(); } };
+        div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button') && e.target.tagName !== 'INPUT') { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); updateDMNotificationBadge(); closeAltersModal(); } };
         list.appendChild(div);
       });
       if (archives.length > 0) {
@@ -755,6 +755,13 @@
       alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa' });
       saveData();
       document.getElementById('newAlterName').value = '';
+      showAltersModal();
+    }
+    function updateAlterHandle(index, newHandle) {
+      if (!newHandle) return;
+      if (!newHandle.startsWith('@')) newHandle = '@' + newHandle.trim().replace(/\s+/g, '');
+      alters[index].handle = newHandle;
+      saveData();
       showAltersModal();
     }
     function viewMedia(url) {
