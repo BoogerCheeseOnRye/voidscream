@@ -777,10 +777,11 @@ function updateComposerUI() {
   const alter = alters[currentAlterIndex];
   document.getElementById('composer-avatar').innerHTML = `<img src="${alter.avatar}" class="w-10 h-10 rounded-2xl object-cover">`;
   document.getElementById('composer-avatar').style.borderColor = alter.color;
+  document.getElementById('composer-avatar').style.boxShadow = `0 0 20px ${alter.color}`;
   document.getElementById('composer-name').textContent = `${alter.name} • ${alter.mood ? alter.mood : 'void'}`;
   loadCurrentTheme();
 }
-    function renderMoodPicker() {
+function renderMoodPicker() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   const container = document.getElementById('moodPicker');
@@ -1686,7 +1687,7 @@ async function sendDM() {
     };
     grid.appendChild(card);
   });
-    function openThemeModal() {
+  function openThemeModal() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   const alter = alters[currentAlterIndex];
@@ -1715,7 +1716,7 @@ function applyTheme(themeKey) {
       applyTheme('abyss');
       renderThemeGrid();
     }
-  function loadCurrentTheme() {
+function loadCurrentTheme() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   if (alters[currentAlterIndex] && alters[currentAlterIndex].theme) {
