@@ -254,7 +254,6 @@
       <button onclick="showAltersModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-users"></i></button>
       <button onclick="openDMModal();toggleHubMenu()" id="dmHubBtn" class="hub-menu-btn"><i class="fa fa-envelope"></i><span id="dmBadge" class="dm-badge hidden">0</span></button>
       <button onclick="openThemeModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-palette"></i></button>
-      <!-- NEW COUNSELOR DM BUTTON -->
       <button onclick="openCounselorDM();toggleHubMenu()" class="hub-menu-btn counselor-btn"><i class="fa fa-brain"></i><span class="gemma-badge absolute -top-1 -right-1">COUNSEL</span></button>
     </div>
   </div>
@@ -579,19 +578,22 @@
       } catch (e) {}
     }
 
-    async function generateWithGemma(targetIndex, userMessage, isCounselor = false) {
+    async function generateWithGemma(targetIndex, userMessage, isCounselor = false, partnerIndex = null) {
       await initGemma();
       const target = alters[targetIndex];
       const base = alters[target.basePersonality] || target;
       let systemPrompt = `You are ${base.name} (Gemma 3 270M echo clone). Respond in their exact voice, tone, and style using only their recent DMs and current mood (${selectedScreamMood || '🌑'}). Keep replies short, raw, personal.`;
-      if (isCounselor) systemPrompt = `You are the internal Counselor for ${base.name}. Be compassionate, supportive, and therapeutic. Help them process feelings safely. Respond gently and insightfully.`;
+      if (isCounselor) {
+        systemPrompt = `You are the Internal Counselor. You are NOT a licensed therapist. This is for internal catharsis and role-play only. If anyone is in real crisis, immediately direct them to 988 or a professional. Be compassionate, supportive, and ethical. For couples counseling, address both parties respectfully and help them communicate.`;
+        if (partnerIndex !== null) systemPrompt += ` You are now facilitating a couples session between ${base.name} and ${alters[partnerIndex].name}.`;
+      }
       const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}\nYou:`;
       if (wllamaInstance && gemmaLoaded) {
         const result = await wllamaInstance.generate(fullPrompt, { maxTokens: 60, temperature: 0.85, topP: 0.9 });
         return result.trim();
       }
       const templates = isCounselor 
-        ? [`I hear you... ${userMessage}. You're not alone in this.`, `That sounds heavy. How are you feeling right now?`, `You're safe here. Let's breathe through it together.`]
+        ? [`I hear you... ${userMessage}. You're not alone in this. If this feels heavy, please reach out to 988 or a real therapist.`, `That sounds heavy. How are you both feeling right now? Let's talk through it safely.`]
         : [`${selectedScreamMood} ${userMessage}… exactly what I was thinking`, `Yeah… ${userMessage.toLowerCase()} hits different when you're in the void`];
       return templates[Math.floor(Math.random() * templates.length)];
     }
@@ -790,11 +792,22 @@
         const unread = unreadNotifications[i] || 0;
         const hasPw = !!(alt.password && alt.password.hash);
         const isPersona = !!alt.isPersona;
+        const status = alt.relationshipStatus || 'Single';
         const div = document.createElement('div');
         div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'}`;
         div.innerHTML = `
           <img src="${alt.avatar}" class="w-12 h-12 rounded-2xl border-2" style="border-color:${alt.color}">
-          <div class="flex-1"><div class="font-bold">${alt.name}${isPersona ? ' <span class="gemma-badge">GEMMA ECHO</span>' : ''}</div><input type="text" value="${alt.handle}" class="bg-transparent border-b border-cyan-400 text-xs neon-cyan w-28 text-center outline-none px-1" onblur="updateAlterHandle(${i}, this.value)" style="font-family:monospace"></div>
+          <div class="flex-1">
+            <div class="font-bold">${alt.name}${isPersona ? ' <span class="gemma-badge">GEMMA ECHO</span>' : ''}</div>
+            <div class="text-xs neon-cyan">${alt.handle} • ${status}</div>
+            <select onchange="updateRelationshipStatus(${i}, this.value)" class="bg-transparent text-xs neon-cyan border-b border-cyan-400 outline-none">
+              <option value="Single" ${status==='Single'?'selected':''}>Single</option>
+              <option value="Bonded" ${status==='Bonded'?'selected':''}>Bonded</option>
+              <option value="Strained" ${status==='Strained'?'selected':''}>Strained</option>
+              <option value="Coupled" ${status==='Coupled'?'selected':''}>Coupled</option>
+              <option value="Complicated" ${status==='Complicated'?'selected':''}>Complicated</option>
+            </select>
+          </div>
           ${unread > 0 ? `<div class="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">${unread}</div>` : ''}
           ${hasPw ? `<i onclick="event.stopImmediatePropagation()" class="fa fa-lock text-red-400"></i>` : ''}
           <div class="flex gap-3">
@@ -805,7 +818,7 @@
             <button onclick="killAlter(${i}); event.stopImmediatePropagation()" class="text-red-400"><i class="fa fa-trash"></i></button>
           </div>
         `;
-        div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button') && e.target.tagName !== 'INPUT') { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); updateDMNotificationBadge(); closeAltersModal(); } };
+        div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); updateDMNotificationBadge(); closeAltersModal(); } };
         list.appendChild(div);
       });
       if (archives.length > 0) {
@@ -825,6 +838,10 @@
       }
       setTimeout(drawMoodGraph, 100);
       document.getElementById('altersModal').classList.remove('hidden');
+    }
+    function updateRelationshipStatus(index, newStatus) {
+      alters[index].relationshipStatus = newStatus;
+      saveData();
     }
     function closeAltersModal() {
       document.getElementById('altersModal').classList.add('hidden');
@@ -912,7 +929,7 @@
         alert("An alter with this name already exists");
         return;
       }
-      alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa', theme: 'abyss', password: null });
+      alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa', theme: 'abyss', password: null, relationshipStatus: 'Single' });
       saveData();
       document.getElementById('newAlterName').value = '';
       showAltersModal();
@@ -930,7 +947,7 @@
       const cloneName = base.name + " (Gemma Echo)";
       const exists = alters.some(a => a.name === cloneName);
       if (exists) { alert("Gemma Echo clone already exists"); return; }
-      const clone = { id: Date.now(), name: cloneName, handle: base.handle + "-gemma", avatar: base.avatar, color: base.color, theme: base.theme, password: null, isPersona: true, basePersonality: baseIndex };
+      const clone = { id: Date.now(), name: cloneName, handle: base.handle + "-gemma", avatar: base.avatar, color: base.color, theme: base.theme, password: null, isPersona: true, basePersonality: baseIndex, relationshipStatus: 'Single' };
       alters.push(clone);
       saveData();
       showAltersModal();
@@ -1215,10 +1232,9 @@
         badge.classList.add('hidden');
       }
     }
-    // NEW: COUNSELOR DM (re-uses echo/Gemma code with therapeutic prompt)
+    // COUNSELOR DM (ethical + couples support)
     async function openCounselorDM() {
       if (!ensureCurrentAlter()) return;
-      // Create counselor persona if none exists
       let counselorIndex = alters.findIndex(a => a.name === "Internal Counselor");
       if (counselorIndex === -1) {
         const base = alters[currentAlterIndex];
@@ -1231,15 +1247,23 @@
           theme: base.theme,
           password: null,
           isPersona: true,
-          basePersonality: currentAlterIndex
+          basePersonality: currentAlterIndex,
+          relationshipStatus: 'Single'
         };
         alters.push(counselor);
         counselorIndex = alters.length - 1;
         saveData();
       }
+      // For couples counseling, allow quick partner selection if relationshipStatus suggests one
+      const currentStatus = alters[currentAlterIndex].relationshipStatus || 'Single';
+      let partnerIndex = null;
+      if (currentStatus.includes('Coupled') || currentStatus.includes('Bonded')) {
+        const partnerName = currentStatus.split('with ')[1];
+        partnerIndex = alters.findIndex(a => a.name === partnerName);
+      }
       currentDMTarget = counselorIndex;
       const header = document.getElementById('dmChatHeader');
-      header.textContent = `Counselor DM`;
+      header.textContent = partnerIndex !== null ? `Couples Counseling` : `Counselor DM`;
       unreadNotifications[counselorIndex] = 0;
       saveData();
       renderDMChat();
@@ -1445,7 +1469,8 @@
         avatar: avatar,
         color: '#ff00aa',
         theme: 'abyss',
-        password: null
+        password: null,
+        relationshipStatus: 'Single'
       }];
       saveData();
       currentAlterIndex = 0;
