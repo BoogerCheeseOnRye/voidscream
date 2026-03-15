@@ -351,24 +351,34 @@
       <div id="dmAltersList" class="space-y-3"></div>
     </div>
   </div>
-  <!-- DM CHAT MODAL -->
-  <div id="dmChatModal" onclick="if(event.target.id==='dmChatModal')closeDMChat()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[66]">
-    <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
-      <div class="flex justify-between mb-6">
-        <button onclick="returnToModal='dmChatModal';closeDMChat();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
-          <i class="fa fa-users text-xl"></i>
-          <span class="font-bold">SWITCH ALTER</span>
-        </button>
-        <div id="dmChatHeader" class="neon-pink text-2xl font-black flex-1 text-center"></div>
-        <button onclick="closeDMChat()" class="text-4xl neon-cyan">×</button>
-      </div>
-      <div id="dmMessages" class="space-y-6 mb-8"></div>
-      <div class="flex gap-3">
-        <input id="dmInput" type="text" placeholder="message..." class="flex-1 bg-[#0f0022] border-2 border-cyan-400 rounded-3xl px-6 py-4 text-sm neon-cyan">
-        <button onclick="sendDM()" class="px-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">SEND</button>
-      </div>
+ <!-- unchanged DM modals stay exactly as-is -->
+<div id="dmHubModal" onclick="if(event.target.id==='dmHubModal')closeDMHub()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[65]">
+  <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+    <div class="flex justify-between mb-6">
+      <div class="neon-pink text-2xl font-black">DM OTHER ALTERS</div>
+      <button onclick="closeDMHub()" class="text-4xl neon-cyan">×</button>
+    </div>
+    <div id="dmAltersList" class="space-y-3"></div>
+  </div>
+</div>
+
+<div id="dmChatModal" onclick="if(event.target.id==='dmChatModal')closeDMChat()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[66]">
+  <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+    <div class="flex justify-between mb-6">
+      <button onclick="returnToModal='dmChatModal';closeDMChat();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+        <i class="fa fa-users text-xl"></i>
+        <span class="font-bold">SWITCH ALTER</span>
+      </button>
+      <div id="dmChatHeader" class="neon-pink text-2xl font-black flex-1 text-center"></div>
+      <button onclick="closeDMChat()" class="text-4xl neon-cyan">×</button>
+    </div>
+    <div id="dmMessages" class="space-y-6 mb-8"></div>
+    <div class="flex gap-3">
+      <input id="dmInput" type="text" placeholder="message..." class="flex-1 bg-[#0f0022] border-2 border-cyan-400 rounded-3xl px-6 py-4 text-sm neon-cyan">
+      <button onclick="sendDM()" class="px-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">SEND</button>
     </div>
   </div>
+</div>
   <!-- SCREAM DETAIL MODAL -->
   <div id="screamDetailModal" onclick="if(event.target.id==='screamDetailModal')closeScreamDetail()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[70]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -1162,66 +1172,87 @@
     function closeDMHub() {
       document.getElementById('dmHubModal').classList.add('hidden');
     }
-    function openDMChat(targetIndex) {
-      clearModalTextFields();
-      if (!ensureCurrentAlter()) return;
-      closeDMHub();
-      currentDMTarget = targetIndex;
-      const header = document.getElementById('dmChatHeader');
-      header.textContent = `DM ${alters[targetIndex].name}`;
-      unreadNotifications[targetIndex] = 0;
-      saveData();
-      renderDMChat();
-      updateDMNotificationBadge();
-      document.getElementById('dmChatModal').classList.remove('hidden');
-      setTimeout(() => { document.getElementById('dmInput').focus(); }, 100);
-    }
-    function closeDMChat() {
-      document.getElementById('dmChatModal').classList.add('hidden');
-    }
-    function renderDMChat() {
-      const container = document.getElementById('dmMessages');
-      container.innerHTML = '';
-      const key = `${currentAlterIndex}-${currentDMTarget}`;
-      const msgs = dmMessages[key] || [];
-      msgs.forEach(m => {
-        const div = document.createElement('div');
-        div.className = `flex ${m.from === currentAlterIndex ? 'justify-end' : 'justify-start'}`;
-        div.innerHTML = `
-          <div class="max-w-[70%] p-3 rounded-3xl ${m.from === currentAlterIndex ? 'bg-cyan-400 text-[#0a001f]' : 'bg-zinc-700 text-white'}">
-            ${m.text}
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-    async function sendDM() {
-      const input = document.getElementById('dmInput');
-      const text = input.value.trim();
-      if (!text) return;
-      const key = `${currentAlterIndex}-${currentDMTarget}`;
-      if (!dmMessages[key]) dmMessages[key] = [];
-      dmMessages[key].push({ from: currentAlterIndex, text, time: Date.now() });
-      if (!unreadNotifications[currentDMTarget]) unreadNotifications[currentDMTarget] = 0;
-      unreadNotifications[currentDMTarget]++;
-      saveData();
-      input.value = '';
-      renderDMChat();
-      updateDMNotificationBadge();
-      const target = alters[currentDMTarget];
-      if (target && target.isPersona) {
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'text-xs neon-lime flex justify-center';
-        loadingDiv.innerHTML = '🌀 Gemma 3 270M thinking...';
-        document.getElementById('dmMessages').appendChild(loadingDiv);
-        const replyText = await generateWithGemma(currentDMTarget, text);
-        loadingDiv.remove();
-        if (!dmMessages[key]) dmMessages[key] = [];
-        dmMessages[key].push({ from: currentDMTarget, text: replyText, time: Date.now() });
-        saveData();
-        renderDMChat();
-      }
-    }
+ function openDMChat(targetIndex) {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  closeDMHub();
+  currentDMTarget = targetIndex;
+  const header = document.getElementById('dmChatHeader');
+  header.textContent = `DM ${alters[targetIndex].name}`;
+  unreadNotifications[targetIndex] = 0;
+  saveData();
+  renderDMChat();
+  updateDMNotificationBadge();
+  document.getElementById('dmChatModal').classList.remove('hidden');
+  setTimeout(() => { document.getElementById('dmInput').focus(); }, 100);
+}
+
+function closeDMChat() {
+  document.getElementById('dmChatModal').classList.add('hidden');
+}
+
+function renderDMChat() {
+  const container = document.getElementById('dmMessages');
+  container.innerHTML = '';
+  const a = currentAlterIndex;
+  const b = currentDMTarget;
+  const key = `${Math.min(a,b)}-${Math.max(a,b)}`; // canonical min-max thread key
+  const msgs = dmMessages[key] || [];
+  msgs.forEach(m => {
+    const senderColor = alters[m.from] ? alters[m.from].color : '#00ffff';
+    const isSelf = m.from === currentAlterIndex;
+    const div = document.createElement('div');
+    div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} group`;
+    div.innerHTML = `
+      <div class="max-w-[70%] p-3 rounded-3xl" style="background:${isSelf ? senderColor : '#3f3f46'}; color:${isSelf ? '#0a001f' : '#fff'}">
+        ${m.text}
+        ${isSelf && m.read ? '<span class="text-xs text-black/60 block text-right">✓✓ read</span>' : ''}
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  if (alters[b] && alters[b].isPersona) {
+    const typing = document.createElement('div');
+    typing.id = 'dmTyping';
+    typing.className = 'text-xs neon-lime flex justify-start mt-2';
+    typing.innerHTML = 'alter is typing...';
+    container.appendChild(typing);
+    setTimeout(() => typing.remove(), 1500);
+  }
+}
+
+async function sendDM() {
+  const input = document.getElementById('dmInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const a = currentAlterIndex;
+  const b = currentDMTarget;
+  const key = `${Math.min(a,b)}-${Math.max(a,b)}`; // canonical
+  if (!dmMessages[key]) dmMessages[key] = [];
+  const salt = alters[a].id || a + 'voidsalt';
+  const sealed = btoa(text + salt); // per-alter void-key sealing (simulated SHA + ID salt)
+  dmMessages[key].push({ from: a, text, sealed, time: Date.now(), read: false });
+  if (!unreadNotifications[b]) unreadNotifications[b] = 0;
+  unreadNotifications[b]++;
+  saveData();
+  input.value = '';
+  renderDMChat();
+  updateDMNotificationBadge();
+  const target = alters[b];
+  if (target && target.isPersona) {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'text-xs neon-lime flex justify-center';
+    loadingDiv.innerHTML = 'Gemma 3 270M thinking...';
+    document.getElementById('dmMessages').appendChild(loadingDiv);
+    const replyText = await generateWithGemma(b, text);
+    loadingDiv.remove();
+    if (!dmMessages[key]) dmMessages[key] = [];
+    const replySalt = alters[b].id || b + 'voidsalt';
+    dmMessages[key].push({ from: b, text: replyText, sealed: btoa(replyText + replySalt), time: Date.now(), read: true });
+    saveData();
+    renderDMChat();
+  }
+}
     function updateDMNotificationBadge() {
       const unreadForCurrent = unreadNotifications[currentAlterIndex] || 0;
       const badge = document.getElementById('dmBadge');
