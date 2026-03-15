@@ -763,14 +763,15 @@
       document.getElementById('screamModal').classList.add('hidden');
       selectedScreamMood = '🌑';
     }
-    function updateComposerUI() {
-      if (alters.length === 0) return;
-      const alter = alters[currentAlterIndex];
-      document.getElementById('composer-avatar').innerHTML = `<img src="${alter.avatar}" class="w-10 h-10 rounded-2xl object-cover">`;
-      document.getElementById('composer-avatar').style.borderColor = alter.color;
-      document.getElementById('composer-name').textContent = alter.name;
-      loadCurrentTheme();
-    }
+function updateComposerUI() {
+  if (alters.length === 0) return;
+  const alter = alters[currentAlterIndex];
+  document.getElementById('composer-avatar').innerHTML = `<img src="${alter.avatar}" class="w-10 h-10 rounded-2xl object-cover">`;
+  document.getElementById('composer-avatar').style.borderColor = alter.color;
+  document.getElementById('composer-avatar').style.boxShadow = `0 0 20px ${alter.color}`;
+  document.getElementById('composer-name').textContent = alter.name;
+  loadCurrentTheme();
+}
     function renderMoodPicker() {
       const container = document.getElementById('moodPicker');
       container.innerHTML = '';
@@ -1649,27 +1650,27 @@ async function sendDM() {
       alert("Feedback sent locally to the abyss.");
       closeFeedbackModal();
     }
-    function renderThemeGrid() {
-      const grid = document.getElementById('themeGrid');
-      grid.innerHTML = '';
-      const currentTheme = alters[currentAlterIndex] ? alters[currentAlterIndex].theme || 'abyss' : 'abyss';
-      Object.keys(themes).forEach(key => {
-        const t = themes[key];
-        const card = document.createElement('div');
-        card.className = `theme-card ${key === currentTheme ? 'current' : ''}`;
-        card.style.background = `linear-gradient(45deg, ${t.primary}, ${t.accent})`;
-        const moodForTheme = Object.keys(moodToTheme).find(m => moodToTheme[m] === key) || '🌑';
-        card.innerHTML = `
-          <div style="font-size:48px; line-height:1;">${moodForTheme}</div>
-          <div>${t.name}</div>
-        `;
-        card.onclick = () => {
-          applyTheme(key);
-          renderThemeGrid();
-        };
-        grid.appendChild(card);
-      });
-    }
+   function renderThemeGrid() {
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = '';
+  const currentTheme = alters[currentAlterIndex] ? alters[currentAlterIndex].theme || 'abyss' : 'abyss';
+  Object.keys(themes).forEach(key => {
+    const t = themes[key];
+    const card = document.createElement('div');
+    card.className = `theme-card ${key === currentTheme ? 'current' : ''} transition-all`;
+    card.style.background = `linear-gradient(45deg, ${t.primary}, ${t.accent})`;
+    card.style.boxShadow = `0 0 25px ${alters[currentAlterIndex] ? alters[currentAlterIndex].color : '#00ffff'}`;
+    const moodForTheme = Object.keys(moodToTheme).find(m => moodToTheme[m] === key) || 'Dark Void';
+    card.innerHTML = `
+      <div style="font-size:48px; line-height:1;">${moodForTheme}</div>
+      <div>${t.name}</div>
+    `;
+    card.onclick = () => {
+      applyTheme(key);
+      renderThemeGrid();
+    };
+    grid.appendChild(card);
+  });
     function openThemeModal() {
       clearModalTextFields();
       if (!ensureCurrentAlter()) return;
@@ -1681,26 +1682,34 @@ async function sendDM() {
     function closeThemeModal() {
       document.getElementById('themeModal').classList.add('hidden');
     }
-    function applyTheme(themeKey) {
-      const t = themes[themeKey];
-      document.documentElement.style.setProperty('--neon-pink', t.primary);
-      document.documentElement.style.setProperty('--neon-cyan', t.accent);
-      if (alters[currentAlterIndex]) {
-        alters[currentAlterIndex].theme = themeKey;
-        saveData();
-      }
-    }
+function applyTheme(themeKey) {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  const t = themes[themeKey];
+  const alter = alters[currentAlterIndex];
+  const primaryColor = alter ? alter.color : t.primary;
+  const salt = alter.id || currentAlterIndex + 'voidsalt';
+  const sealedPrimary = btoa(primaryColor + salt); // per-alter void-key sealing
+  document.documentElement.style.setProperty('--neon-pink', primaryColor);
+  document.documentElement.style.setProperty('--neon-cyan', t.accent);
+  if (alter) {
+    alter.theme = themeKey;
+    saveData();
+  }
+}
     function resetTheme() {
       applyTheme('abyss');
       renderThemeGrid();
     }
-    function loadCurrentTheme() {
-      if (alters[currentAlterIndex] && alters[currentAlterIndex].theme) {
-        applyTheme(alters[currentAlterIndex].theme);
-      } else {
-        applyTheme('abyss');
-      }
-    }
+   function loadCurrentTheme() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  if (alters[currentAlterIndex] && alters[currentAlterIndex].theme) {
+    applyTheme(alters[currentAlterIndex].theme);
+  } else {
+    applyTheme('abyss');
+  }
+}
     function initApp() {
       loadData();
       if (!localStorage.getItem('voidscreams')) screams = [];
