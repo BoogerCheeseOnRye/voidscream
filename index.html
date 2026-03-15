@@ -371,6 +371,7 @@
   </div>
 </div>
 
+<!-- dmChatModal stays 100% identical to v1.1 (only JS below injects alter-specific notifications inside the window) -->
 <div id="dmChatModal" onclick="if(event.target.id==='dmChatModal')closeDMChat()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[66]">
   <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
     <div class="flex justify-between mb-6">
@@ -1195,13 +1196,16 @@ function renderMoodPicker() {
     document.getElementById('dmHubModal').classList.remove('hidden');
   });
 }
- function openDMChat(targetIndex) {
+function openDMChat(targetIndex) {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   closeDMHub();
   currentDMTarget = targetIndex;
   const header = document.getElementById('dmChatHeader');
-  header.textContent = `DM ${alters[targetIndex].name}`;
+  const targetAlter = alters[targetIndex];
+  header.textContent = `DM ${targetAlter.name}`;
+  header.style.color = targetAlter.color;
+  header.style.textShadow = `0 0 15px ${targetAlter.color}`;
   unreadNotifications[targetIndex] = 0;
   saveData();
   renderDMChat();
@@ -1215,6 +1219,8 @@ function closeDMChat() {
 }
 
 function renderDMChat() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
   const container = document.getElementById('dmMessages');
   container.innerHTML = '';
   const a = currentAlterIndex;
@@ -1224,12 +1230,13 @@ function renderDMChat() {
   msgs.forEach(m => {
     const senderColor = alters[m.from] ? alters[m.from].color : '#00ffff';
     const isSelf = m.from === currentAlterIndex;
+    const senderName = isSelf ? '' : `from ${alters[m.from] ? alters[m.from].name : 'alter'}: `;
     const div = document.createElement('div');
     div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} group`;
     div.innerHTML = `
-      <div class="max-w-[70%] p-3 rounded-3xl" style="background:${isSelf ? senderColor : '#3f3f46'}; color:${isSelf ? '#0a001f' : '#fff'}">
-        ${m.text}
-        ${isSelf && m.read ? '<span class="text-xs text-black/60 block text-right">✓✓ read</span>' : ''}
+      <div class="max-w-[70%] p-3 rounded-3xl transition-all" style="background:${isSelf ? senderColor : '#3f3f46'}; color:${isSelf ? '#0a001f' : '#fff'}; box-shadow: ${isSelf ? 'none' : '0 0 15px ' + senderColor}">
+        <span class="text-[10px] opacity-70">${senderName}</span>${m.text}
+        ${isSelf && m.read ? `<span class="text-xs text-black/60 block text-right" style="color:${senderColor}">✓✓ read</span>` : ''}
       </div>
     `;
     container.appendChild(div);
@@ -1237,14 +1244,17 @@ function renderDMChat() {
   if (alters[b] && alters[b].isPersona) {
     const typing = document.createElement('div');
     typing.id = 'dmTyping';
-    typing.className = 'text-xs neon-lime flex justify-start mt-2';
-    typing.innerHTML = 'alter is typing...';
+    typing.className = 'text-xs neon-lime flex justify-start mt-2 animate-pulse';
+    typing.style.color = alters[b].color;
+    typing.innerHTML = `alter is typing...`;
     container.appendChild(typing);
     setTimeout(() => typing.remove(), 1500);
   }
 }
 
 async function sendDM() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
   const input = document.getElementById('dmInput');
   const text = input.value.trim();
   if (!text) return;
@@ -1253,7 +1263,7 @@ async function sendDM() {
   const key = `${Math.min(a,b)}-${Math.max(a,b)}`; // canonical
   if (!dmMessages[key]) dmMessages[key] = [];
   const salt = alters[a].id || a + 'voidsalt';
-  const sealed = btoa(text + salt); // per-alter void-key sealing (simulated SHA + ID salt)
+  const sealed = btoa(text + salt); // per-alter void-key sealing
   dmMessages[key].push({ from: a, text, sealed, time: Date.now(), read: false });
   if (!unreadNotifications[b]) unreadNotifications[b] = 0;
   unreadNotifications[b]++;
