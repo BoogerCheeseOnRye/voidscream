@@ -641,7 +641,7 @@
       const list = document.getElementById('alters-list');
       list.innerHTML = '';
       alters.forEach((alt, i) => {
-        const unread = unreadNotifications[i] || 0;
+        const unread = (currentAlterIndex === 0) ? (unreadNotifications[i] || 0) : 0;
         const div = document.createElement('div');
         div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'}`;
         div.innerHTML = `
