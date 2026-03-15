@@ -1,0 +1,2893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>VOIDSCREAM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<!-- wllama CDN disabled (MIME nosniff fix) -->
+<script>
+console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00ffff;font-weight:bold');
+</script>
+  <style>
+    :root {
+      --abyss: #0a001f;
+      --neon-pink: #ff00cc;
+      --neon-cyan: #00ffff;
+      --neon-lime: #ccff00;
+    }
+    html, body, .overflow-y-auto, #feed, #alters-list, #commentsList, #calendarGrid, #dmMessages { 
+      scrollbar-width: none; 
+      -ms-overflow-style: none; 
+    }
+    html::-webkit-scrollbar, body::-webkit-scrollbar, .overflow-y-auto::-webkit-scrollbar, 
+    #feed::-webkit-scrollbar, #alters-list::-webkit-scrollbar, #commentsList::-webkit-scrollbar, 
+    #calendarGrid::-webkit-scrollbar, #dmMessages::-webkit-scrollbar { display: none; }
+    body { 
+      background: var(--abyss); 
+      font-family: system-ui, sans-serif; 
+      height: 100dvh; 
+      overflow: hidden; 
+      display: flex; 
+      flex-direction: column; 
+      margin: 0; 
+      position: relative;
+    }
+    @media (orientation: portrait) {
+      body { height: 100dvh; }
+    }
+    #abyss-fall { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
+    .falling { position: absolute; color: var(--neon-pink); font-size: 22px; opacity: 0.12; text-shadow: 0 0 12px var(--neon-pink), 0 0 25px var(--neon-cyan); animation: abyssFall linear forwards; user-select: none; }
+    @keyframes abyssFall { to { transform: translateY(120vh) rotate(720deg); } }
+    .neon-pink { color: var(--neon-pink); text-shadow: 0 0 12px var(--neon-pink), 0 0 24px var(--neon-pink); }
+    .neon-cyan { color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan), 0 0 24px var(--neon-cyan); }
+    .neon-lime { color: var(--neon-lime); text-shadow: 0 0 10px var(--neon-lime), 0 0 20px var(--neon-lime); }
+    .cyber-header { 
+      text-align: center; 
+      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.65rem; 
+      border-bottom: 1.5px solid color-mix(in srgb, var(--neon-cyan) 40%, transparent); 
+      box-shadow: 0 0 24px color-mix(in srgb, var(--neon-pink) 30%, transparent), 0 4px 24px rgba(0,0,0,0.6); 
+      background: linear-gradient(180deg, #12003a 0%, #0a001f 60%, #050010 100%); 
+      flex-shrink: 0; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      gap: 8px;
+      padding-left: 0.85rem; 
+      padding-right: 0.85rem; 
+      position: relative;
+      z-index: 10;
+    }
+    .header-pill { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 14px; border: 1.5px solid color-mix(in srgb, var(--neon-pink) 30%, transparent); background: color-mix(in srgb, var(--neon-pink) 5%, transparent); cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+    .header-pill:active { transform: scale(0.94); }
+    .header-pill i { font-size: 16px; }
+    .header-pill span { font-size: 10px; font-weight: 800; letter-spacing: 0.05em; }
+    .card { background: #1a0033; border: 2px solid color-mix(in srgb, var(--neon-pink) 53%, transparent); box-shadow: 0 0 20px var(--neon-pink), 0 0 40px var(--neon-cyan); transition: all 0.3s ease; }
+    .post:hover { box-shadow: 0 0 20px color-mix(in srgb, var(--neon-cyan) 53%, transparent); transform: translateY(-4px); }
+    .floating-hub {
+      width: 64px; height: 64px;
+      background: linear-gradient(45deg, var(--neon-pink), var(--neon-cyan));
+      border-radius: 9999px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 25px color-mix(in srgb, var(--neon-pink) 50%, transparent);
+      position: fixed;
+      bottom: max(5rem, calc(env(safe-area-inset-bottom) + 5rem));
+      right: 24px;
+      z-index: 60;
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      font-size: 28px;
+    }
+    .floating-hub.expanded { transform: scale(1.15); }
+    .hub-menu {
+      position: fixed;
+      bottom: calc(5rem + 90px);
+      right: 32px;
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 55;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .hub-menu.show {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .hub-menu-btn {
+      width: 52px; height: 52px;
+      background: linear-gradient(45deg, var(--neon-pink), var(--neon-cyan));
+      border-radius: 9999px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 20px color-mix(in srgb, var(--neon-pink) 50%, transparent);
+      font-size: 24px;
+      color: #0a001f;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .counselor-btn {
+      animation: counselorPulse 2s infinite ease-in-out;
+    }
+    @keyframes counselorPulse {
+      0%, 100% { box-shadow: 0 0 15px #00ff88; transform: scale(1); }
+      50% { box-shadow: 0 0 30px #00ff88, 0 0 45px #00cc66; transform: scale(1.12); }
+    }
+    .hub-menu-btn .dm-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--neon-pink);
+      color: #0a001f;
+      font-size: 10px;
+      font-weight: 900;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px var(--neon-pink);
+      padding: 0 4px;
+    }
+    .modal-full {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .image-wrapper { border-radius: 24px; overflow: hidden; border: 3px solid color-mix(in srgb, var(--neon-cyan) 40%, transparent); box-shadow: 0 0 15px color-mix(in srgb, var(--neon-cyan) 27%, transparent); margin: 0.75rem 0; position: relative; }
+    .post-image, .post-video { width: 100%; max-height: 260px; object-fit: contain; display: block; cursor: pointer; }
+    .inline-comments { display: none; border-top: 1px solid color-mix(in srgb, var(--neon-cyan) 20%, transparent); margin-top: 12px; padding-top: 12px; }
+    .inline-comments.open { display: block; }
+    .nested-reply { margin-left: 32px; border-left: 2px solid color-mix(in srgb, var(--neon-cyan) 20%, transparent); padding-left: 12px; }
+    #mediaContainer { flex: 1; display: flex; align-items: center; justify-content: center; background: #0a001f; overflow: hidden; position: relative; }
+    #modalMedia { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border: 4px solid var(--neon-cyan); border-radius: 24px; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; font-size: 13px; }
+    .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; transition: all 0.2s; border: 1px solid color-mix(in srgb, var(--neon-pink) 20%, transparent); }
+    .calendar-day:hover { background: color-mix(in srgb, var(--neon-cyan) 13%, transparent); transform: scale(1.1); }
+    .calendar-day.has-mood { border: 2px solid var(--neon-lime); box-shadow: 0 0 12px var(--neon-lime); }
+    .mood-picker { display: flex; gap: 12px; justify-content: center; margin: 12px 0; }
+    .mood-btn { font-size: 28px; cursor: pointer; transition: transform 0.2s; }
+    .mood-btn.selected { transform: scale(1.4); }
+    canvas { image-rendering: crisp-edges; }
+    .theme-card { 
+      width: 108px; height: 128px; border-radius: 24px; cursor: pointer; transition: all 0.3s; 
+      box-shadow: 0 0 20px currentColor; display: flex; flex-direction: column; align-items: center; 
+      justify-content: center; font-size: 12px; font-weight: 900; color: #0a001f; gap: 8px; position: relative;
+    }
+    .theme-card:hover { transform: scale(1.08); }
+    .theme-card.current { 
+      box-shadow: 0 0 30px var(--neon-cyan), 0 0 50px var(--neon-pink); 
+      border: 4px solid var(--neon-cyan); 
+    }
+    .theme-card.current::after {
+      content: 'CURRENT';
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--neon-cyan);
+      color: #0a001f;
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-weight: 900;
+    }
+    .gemma-badge { background: linear-gradient(45deg, #00ff88, #00cc66); color: #0a001f; font-size: 9px; padding: 1px 6px; border-radius: 9999px; font-weight: 900; }
+    .alter-nameplate {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 900; letter-spacing: 0.02em;
+    }
+    .alter-symbol {
+      font-size: 0.85em; opacity: 0.85; line-height: 1;
+    }
+    .role-badge {
+      font-size: 0.6em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 1px 7px; border-radius: 99px; border: 1.5px solid currentColor;
+      opacity: 0.92; line-height: 1.6;
+      background: color-mix(in srgb, currentColor 10%, transparent);
+    }
+    .alter-compact-card {
+      border-radius: 20px; padding: 12px 14px; cursor: pointer; transition: all 0.25s ease;
+      position: relative; overflow: hidden;
+    }
+    .alter-compact-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: 20px; padding: 1.5px;
+      background: var(--card-gradient); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+    }
+    .alter-compact-card:active { transform: scale(0.97); }
+    .alter-edit-fullscreen {
+      position: fixed; inset: 0; z-index: 68; background: linear-gradient(180deg, #0a001f 0%, #000000 100%);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .alter-edit-section {
+      background: #0d0d1a; border-radius: 16px; padding: 16px; margin-bottom: 12px;
+    }
+    .alter-edit-section-title {
+      font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 10px; opacity: 0.6;
+    }
+    .alter-edit-field {
+      margin-bottom: 10px;
+    }
+    .alter-edit-field label {
+      display: block; font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #666; margin-bottom: 4px;
+    }
+    .alter-edit-field input, .alter-edit-field select {
+      width: 100%; background: #1a0033; border: 1.5px solid #333; border-radius: 12px;
+      padding: 10px 14px; font-size: 14px; color: #fff; outline: none; transition: border-color 0.2s;
+    }
+    .alter-edit-field input:focus, .alter-edit-field select:focus {
+      border-color: var(--neon-pink);
+    }
+    .fronting-badge {
+      font-size: 0.55em; font-weight: 900; letter-spacing: 0.1em;
+      padding: 1px 6px; border-radius: 99px;
+      background: var(--neon-lime); color: #0a001f;
+      animation: frontPulse 1.6s ease-in-out infinite;
+    }
+    @keyframes frontPulse {
+      0%,100% { box-shadow: 0 0 6px var(--neon-lime); }
+      50% { box-shadow: 0 0 18px var(--neon-lime), 0 0 30px var(--neon-lime); }
+    }
+    .alter-pronouns {
+      font-size: 0.7em; font-weight: 400; opacity: 0.75; letter-spacing: 0.01em;
+    }
+    /* Gate primary button */
+    .gate-primary-btn { transition: transform 0.15s, box-shadow 0.15s; }
+    .gate-primary-btn:active { transform: scale(0.96); }
+    @keyframes gatePulse { 0%,100% { box-shadow:0 0 28px #ff00cc88,0 4px 32px #00ffff44; } 50% { box-shadow:0 0 44px #ff00cccc,0 4px 48px #00ffff88; } }
+    @keyframes btnGradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .gate-primary-btn {
+      background: linear-gradient(270deg, #ff00cc, #cc00ff, #00ffff, #00ff88, #ff00cc) !important;
+      background-size: 300% 300% !important;
+      animation: gatePulse 2.8s ease-in-out infinite, btnGradientShift 5s ease-in-out infinite;
+    }
+    /* Mobile safe areas */
+    #app { padding-bottom: env(safe-area-inset-bottom); }
+    .hub-ring { bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px)); }
+    /* Neon range slider */
+    .neon-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 99px; outline: none; cursor: pointer; background: linear-gradient(to right, color-mix(in srgb, var(--neon-pink) 25%, #1a001a), var(--neon-pink)); }
+    .neon-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink); cursor: pointer; transition: box-shadow 0.2s; }
+    .neon-slider::-webkit-slider-thumb:active { box-shadow: 0 0 16px var(--neon-pink), 0 0 32px var(--neon-pink); }
+    .neon-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); cursor: pointer; }
+    /* Theme row design */
+    .theme-row { display: flex; align-items: center; gap: 14px; padding: 13px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; border: 1.5px solid transparent; }
+    .theme-row:active { transform: scale(0.97); }
+    .theme-row.current { border-color: var(--neon-cyan); box-shadow: 0 0 18px color-mix(in srgb, var(--neon-cyan) 50%, transparent); background: color-mix(in srgb, var(--neon-pink) 9%, transparent) !important; }
+    .theme-orb { width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0; }
+    .theme-icon-wrap { width: 32px; flex-shrink: 0; text-align: center; }
+    /* Neon icon (FA icon, white + colored glow) */
+    .neon-icon { color: #ffffff; font-size: 18px; }
+  </style>
+</head>
+<body class="text-white h-[100dvh] overflow-hidden flex flex-col">
+
+  <!-- UPDATE BANNER -->
+  <div id="updateBanner" style="display:none;background:linear-gradient(90deg,#1a003a,#0a001f);border-bottom:2px solid var(--neon-cyan);padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;z-index:300;position:relative;box-shadow:0 0 20px rgba(0,255,255,0.3)">
+    <div style="flex:1;min-width:0">
+      <span style="color:var(--neon-cyan);font-weight:900;font-size:13px;text-shadow:0 0 10px var(--neon-cyan)">⚡ UPDATE AVAILABLE</span>
+      <span id="updateVersionText" style="color:var(--neon-pink);font-weight:700;font-size:12px;margin-left:6px"></span>
+      <a id="updateDownloadLink" href="#" target="_blank" rel="noopener" style="display:block;color:var(--neon-lime);font-size:11px;font-weight:700;margin-top:2px;text-decoration:underline;text-shadow:0 0 8px var(--neon-lime)">Download new version</a>
+    </div>
+    <button onclick="dismissUpdateBanner()" style="background:none;border:none;color:var(--neon-pink);font-size:20px;cursor:pointer;padding:4px 8px;line-height:1;text-shadow:0 0 10px var(--neon-pink)">✕</button>
+  </div>
+
+  <!-- ABYSS FALL LAYER -->
+  <div id="abyss-fall"></div>
+
+  <!-- GATE 0: RETURNING SYSTEM UNLOCK -->
+  <div id="gate0" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[210]">
+    <div onclick="event.stopImmediatePropagation()" class="card rounded-3xl p-8 max-w-sm w-full mx-4 text-center">
+      <div class="text-5xl mb-4">🔒</div>
+      <h2 class="neon-pink text-3xl font-black tracking-[-2px]">YOUR SYSTEM</h2>
+      <p id="gate0-info" class="neon-cyan text-sm mt-3 mb-8 opacity-75">Enter your system password to continue.</p>
+      <input id="gate0-pw" type="password" placeholder="system password…" autocomplete="current-password"
+        class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-5 text-xl text-center neon-cyan mb-3"
+        onkeydown="if(event.key==='Enter')unlockSystem()">
+      <p id="gate0-error" class="hidden text-red-400 text-xs mb-3">Wrong password. Try again.</p>
+      <button onclick="unlockSystem()" class="w-full py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">UNLOCK YOUR SYSTEM</button>
+      <div class="mt-8 border-t border-zinc-800 pt-6 text-left">
+        <p class="text-zinc-500 text-xs mb-3">Forgot your password? Restore from a backup file to recover access.</p>
+        <label class="cursor-pointer text-xs neon-cyan underline">RESTORE FROM BACKUP FILE
+          <input type="file" accept=".json" class="hidden" onchange="restoreFromBackup(event)">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEM LOCK SETUP MODAL -->
+  <div id="systemLockModal" class="hidden fixed inset-0 z-[75] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0 border-b border-zinc-800">
+      <h2 class="neon-pink text-2xl font-black tracking-tight" id="sysLockTitle">SET SYSTEM LOCK</h2>
+      <button onclick="closeSystemLockModal()" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-2xl neon-cyan font-bold leading-none">×</button>
+    </div>
+    <div class="flex-1 overflow-y-auto px-5 py-6 flex flex-col gap-3">
+      <p class="neon-cyan text-sm mb-2" id="sysLockDesc">This password protects all your data every time you return.</p>
+      <input id="sysLockCurrentPw" type="password" placeholder="current system password…"
+        class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-4 text-center neon-cyan hidden">
+      <input id="sysLockNewPw" type="password" placeholder="new system password…"
+        class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-4 text-center neon-cyan">
+      <input id="sysLockConfirmPw" type="password" placeholder="confirm new password…"
+        class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-4 text-center neon-cyan">
+      <p id="sysLockError" class="hidden text-red-400 text-xs"></p>
+      <div class="flex gap-4 mt-4">
+        <button onclick="closeSystemLockModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl">CANCEL</button>
+        <button onclick="saveSystemLock()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SAVE LOCK</button>
+      </div>
+      <button id="removeSysLockBtn" onclick="removeSystemLock()" class="hidden mt-2 w-full py-3 text-red-400 border border-red-800 rounded-3xl text-sm">REMOVE SYSTEM LOCK</button>
+    </div>
+  </div>
+
+  <!-- GATE 1 -->
+  <div id="gate1" class="fixed inset-0 flex items-center justify-center z-[200]" style="background:radial-gradient(ellipse at 50% 60%,#1a003a 0%,#000000 100%)">
+    <div class="max-w-sm w-full mx-5 text-center">
+      <div class="mb-2 flex justify-center">
+        <i class="fa-solid fa-eye text-5xl" style="color:#ff00cc;text-shadow:0 0 20px #ff00cc,0 0 40px #ff00cc88"></i>
+      </div>
+      <h2 class="neon-pink text-5xl font-black tracking-[-3px] mt-4">VOIDSCREAM</h2>
+      <p class="text-zinc-400 text-sm mt-4 leading-relaxed px-2">LOCAL · OFFLINE · FOR DID SYSTEMS<br>Every alter gets their own voice.</p>
+      <div class="mt-10 space-y-3">
+        <button onclick="showGate2()" class="gate-primary-btn w-full py-5 rounded-3xl font-black text-xl text-[#0a001f] flex items-center justify-center gap-3" style="background:linear-gradient(to right,#ff00cc,#00ffff);box-shadow:0 0 28px #ff00cc88,0 4px 32px #00ffff44">
+          <i class="fa-solid fa-door-open text-xl"></i>
+          ENTER THE VOID
+        </button>
+        <button onclick="window.location.reload()" class="w-full py-3 text-zinc-600 text-sm font-medium tracking-widest hover:text-zinc-400 transition-colors">← NEVERMIND</button>
+      </div>
+      <p class="text-[10px] text-zinc-700 mt-8">Nothing leaves your device. Ever.</p>
+    </div>
+  </div>
+
+  <!-- GATE 2 -->
+  <div id="gate2" class="hidden fixed inset-0 flex items-center justify-center z-[200]" style="background:radial-gradient(ellipse at 50% 60%,#001a30 0%,#000000 100%)">
+    <div class="max-w-sm w-full mx-5 text-center">
+      <i class="fa-solid fa-shield-halved text-5xl" style="color:#00ffff;text-shadow:0 0 20px #00ffff,0 0 40px #00ffff66"></i>
+      <h2 class="text-3xl font-black mt-5 tracking-tight" style="color:#fff;text-shadow:0 0 12px #00ffff66">YOU ARE NOT ALONE</h2>
+      <p class="text-zinc-400 text-sm mt-4 leading-relaxed px-2">Real emergencies need real humans. If anyone in your system is in crisis right now:</p>
+      <div class="mt-6 space-y-3 text-left px-2">
+        <div class="flex items-center gap-3 bg-[#001020] rounded-2xl px-4 py-3">
+          <i class="fa-solid fa-phone neon-lime text-lg"></i>
+          <div><div class="text-white font-bold text-sm">988 Crisis Lifeline</div><div class="text-zinc-500 text-xs">Call or text, 24/7 (US)</div></div>
+        </div>
+        <div class="flex items-center gap-3 bg-[#001020] rounded-2xl px-4 py-3">
+          <i class="fa-solid fa-globe neon-lime text-lg"></i>
+          <div><div class="text-white font-bold text-sm">International Crisis</div><div class="text-zinc-500 text-xs">iasp.info/resources/Crisis_Centres</div></div>
+        </div>
+        <div class="flex items-center gap-3 bg-[#001020] rounded-2xl px-4 py-3">
+          <i class="fa-solid fa-brain neon-lime text-lg"></i>
+          <div><div class="text-white font-bold text-sm">DID Support</div><div class="text-zinc-500 text-xs">did-research.org</div></div>
+        </div>
+      </div>
+      <div class="mt-8 space-y-3">
+        <button onclick="showGate3()" class="gate-primary-btn w-full py-5 rounded-3xl font-black text-xl text-[#0a001f] flex items-center justify-center gap-3" style="background:linear-gradient(to right,#ff00cc,#00ffff);box-shadow:0 0 28px #ff00cc88,0 4px 32px #00ffff44">
+          <i class="fa-solid fa-check text-xl"></i>
+          I'M READY
+        </button>
+        <button onclick="window.location.reload()" class="w-full py-3 text-zinc-600 text-sm font-medium tracking-widest hover:text-zinc-400 transition-colors">← BACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GATE 3: FIRST ALTER -->
+  <div id="gate3" class="hidden fixed inset-0 flex items-center justify-center z-[200]" style="background:radial-gradient(ellipse at 50% 40%,#1a0030 0%,#000000 100%)">
+    <div onclick="event.stopImmediatePropagation()" class="max-w-sm w-full mx-5 text-center">
+      <i class="fa-solid fa-user-astronaut text-5xl" style="color:#ff00cc;text-shadow:0 0 20px #ff00cc,0 0 40px #ff00cc66"></i>
+      <h2 class="neon-pink text-3xl font-black mt-5 mb-2">YOUR FIRST ALTER</h2>
+      <p class="text-zinc-500 text-sm mb-7">Name them. Give them a face. The system begins now.</p>
+      <div class="mb-5 text-left">
+        <label class="block text-zinc-500 text-xs font-bold tracking-widest mb-2 ml-1">ALTER NAME</label>
+        <input id="firstAlterName" placeholder="Host / Protector / Shadow" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-2xl px-5 py-4 text-lg text-center tracking-wide" style="box-shadow:0 0 12px #ff00cc33">
+      </div>
+      <div class="mb-7 text-left">
+        <label class="block text-zinc-500 text-xs font-bold tracking-widest mb-2 ml-1">AVATAR</label>
+        <div onclick="document.getElementById('firstAvatarUpload').click()" id="firstAvatarPreview" class="mx-auto w-24 h-24 rounded-3xl border-2 border-[#ff00cc] bg-[#0f0022] flex items-center justify-center cursor-pointer overflow-hidden" style="box-shadow:0 0 16px #ff00cc44">
+          <i class="fa fa-camera text-3xl" style="color:#ff00cc"></i>
+        </div>
+        <input id="firstAvatarUpload" type="file" accept="image/*" class="hidden" onchange="previewFirstAvatar(event)">
+      </div>
+      <div class="space-y-3">
+        <button onclick="createFirstAlter()" class="gate-primary-btn w-full py-5 rounded-3xl font-black text-xl text-[#0a001f] flex items-center justify-center gap-3" style="background:linear-gradient(to right,#ff00cc,#00ffff);box-shadow:0 0 28px #ff00cc88,0 4px 32px #00ffff44">
+          <i class="fa-solid fa-bolt text-xl"></i>
+          START SCREAMING
+        </button>
+        <button onclick="window.location.reload()" class="w-full py-3 text-zinc-600 text-sm font-medium tracking-widest hover:text-zinc-400 transition-colors">← BACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app" class="hidden flex flex-col h-full">
+    <!-- HEADER -->
+    <div class="cyber-header">
+      <div onclick="openNukeModal()" class="header-pill" style="border-color:color-mix(in srgb, var(--neon-pink) 40%, transparent)">
+        <i class="fa-solid fa-bomb neon-pink" style="font-size:15px"></i>
+        <span class="neon-pink hidden sm:inline">NUKE</span>
+      </div>
+      <div onclick="document.getElementById('feed-container').scrollTop=0" class="flex-1 flex items-center justify-center gap-3 cursor-pointer min-w-0">
+        <div id="header-alter-avatar" class="w-8 h-8 rounded-xl border-2 overflow-hidden flex-shrink-0 hidden" style="border-color:var(--neon-pink)">
+          <img id="header-alter-img" class="w-full h-full object-cover" src="">
+        </div>
+        <div class="text-center">
+          <div class="neon-pink text-3xl font-black tracking-[-3px] leading-none" style="text-shadow:0 0 16px var(--neon-pink),0 0 36px var(--neon-pink)">VOIDSCREAM</div>
+          <div id="header-alter-name" class="text-zinc-500 text-[10px] font-bold tracking-wider mt-0.5 truncate"></div>
+        </div>
+      </div>
+      <div onclick="openCalendarModal()" class="header-pill" style="border-color:color-mix(in srgb, var(--neon-cyan) 40%, transparent)">
+        <i class="fa-solid fa-calendar neon-cyan" style="font-size:15px"></i>
+        <span class="neon-cyan hidden sm:inline">MOODS</span>
+      </div>
+    </div>
+    <!-- FEED -->
+    <div id="feed-container" class="flex-1 overflow-y-auto p-4 space-y-6 bg-[#0a001f]">
+      <div id="feed" class="space-y-6"></div>
+    </div>
+    <!-- HUB BUTTON -->
+    <button onclick="toggleHubMenu()" id="hubBtn" class="floating-hub">
+      <i class="fa fa-plus"></i>
+    </button>
+    <!-- HUB MENU -->
+    <div id="hubMenu" class="hub-menu">
+      <button onclick="openScreamModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-plus"></i></button>
+      <button onclick="showAltersModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-users"></i></button>
+      <button onclick="openDMModal();toggleHubMenu()" id="dmHubBtn" class="hub-menu-btn"><i class="fa fa-envelope"></i><span id="dmBadge" class="dm-badge hidden">0</span></button>
+      <button onclick="openThemeModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-palette"></i></button>
+      <button onclick="openCounselorDM();toggleHubMenu()" class="hub-menu-btn counselor-btn"><i class="fa fa-brain"></i><span class="gemma-badge absolute -top-1 -right-1">COUNSEL</span></button>
+    </div>
+  </div>
+  <!-- SCREAM COMPOSER MODAL -->
+  <div id="screamModal" class="hidden fixed inset-0 z-[55] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <div onclick="showAltersModal()" class="flex items-center gap-3 cursor-pointer">
+          <div id="composer-avatar" class="w-10 h-10 rounded-2xl border-2" style="border-color:var(--neon-pink)"></div>
+          <div>
+            <div id="composer-nameplate" class="alter-nameplate font-bold" style="color:var(--neon-pink);text-shadow:0 0 10px var(--neon-pink)">
+              <span id="composer-symbol" class="alter-symbol"></span>
+              <span id="composer-name"></span>
+              <span id="composer-role-badge" class="role-badge hidden"></span>
+              <span id="composer-fronting-badge" class="fronting-badge hidden">◆ FRONT</span>
+            </div>
+            <div id="composer-handle" class="text-xs flex gap-2 items-center" style="color:var(--neon-cyan)">
+              <span id="composer-handle-text">@voidanon</span>
+              <span id="composer-pronouns" class="alter-pronouns"></span>
+            </div>
+          </div>
+        </div>
+        <button onclick="closeScreamModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <textarea id="screamText" rows="6" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-cyan resize-none" placeholder="let every alter rip..."></textarea>
+      <div class="mt-6">
+        <label class="neon-lime text-xs block mb-3">CURRENT MOOD FOR THIS SCREAM</label>
+        <div id="moodPicker" class="mood-picker"></div>
+        <div class="mt-4">
+          <label class="neon-lime text-xs block mb-2">OR CUSTOM MOOD (emoji or text)</label>
+          <input id="customMoodInput" type="text" class="w-full bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-4 text-sm" placeholder="😈 or raging">
+        </div>
+      </div>
+      <div class="mt-6 flex items-center justify-between px-2">
+        <span class="neon-lime text-xs font-medium">SAVE OPTION</span>
+        <div onclick="toggleSaveMode()" id="saveToggle" class="bg-zinc-800 text-xs px-6 py-2 rounded-3xl cursor-pointer neon-cyan">THIS ALTER ONLY</div>
+      </div>
+      <div class="mt-6">
+        <label class="neon-lime text-xs block mb-2">MEDIA / LINK (image/gif/mp4/webm OR any URL)</label>
+        <input id="mediaUrl" type="text" class="w-full bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-4 text-sm" placeholder="https://...">
+      </div>
+      <div class="flex gap-4 mt-8">
+        <button onclick="closeScreamModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">NEVERMIND</button>
+        <button onclick="postScream()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">CAST SCREAM</button>
+      </div>
+    </div>
+  </div>
+  <!-- THEME MODAL -->
+  <div id="themeModal" class="hidden fixed inset-0 z-[60] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 flex flex-col overflow-hidden px-5 py-5">
+      <div class="flex justify-between items-center mb-5 flex-shrink-0">
+        <div id="themeAlterName" class="neon-pink text-xl font-black tracking-tight"></div>
+        <button onclick="closeThemeModal()" class="text-4xl neon-cyan leading-none">×</button>
+      </div>
+      <!-- Neon intensity slider -->
+      <div class="mb-5 flex-shrink-0 bg-[#0f0022] rounded-2xl p-4">
+        <div class="flex justify-between items-center mb-3">
+          <span class="neon-cyan text-xs font-bold tracking-widest">NEON INTENSITY</span>
+          <span id="intensityLabel" class="neon-pink font-black text-base tracking-widest">●●●○○</span>
+        </div>
+        <input type="range" id="neonIntensitySlider" min="0" max="100" value="50" class="neon-slider" oninput="setNeonIntensity(this.value)">
+        <div class="flex justify-between text-zinc-600 text-xs mt-2"><span>DIM</span><span>BLAZING</span></div>
+      </div>
+      <!-- Theme list -->
+      <div id="themeGrid" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+      <!-- Custom color -->
+      <div class="mt-4 flex-shrink-0 border-t border-zinc-800 pt-4">
+        <div class="text-xs neon-cyan font-bold tracking-widest mb-3">CUSTOM COLOR</div>
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <input id="customColorPicker" type="color" value="#ff00cc" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer" oninput="previewCustomColor(this.value)">
+            <div id="customColorOrb" class="w-12 h-12 rounded-full border-2 border-pink-400 pointer-events-none" style="background:#ff00cc;box-shadow:0 0 12px #ff00cc"></div>
+          </div>
+          <button onclick="applyCustomColor()" class="flex-1 py-3 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-2xl text-sm tracking-wider">APPLY CUSTOM</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- REPLY COMPOSER MODAL -->
+  <div id="replyModal" class="hidden fixed inset-0 z-[56] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
+      <div class="flex justify-between mb-4">
+        <div class="neon-lime font-bold">REPLY TO SCREECH</div>
+        <button onclick="closeReplyModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <textarea id="replyText" rows="6" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-cyan resize-none" placeholder="your reply..."></textarea>
+      <div class="mt-6">
+        <label class="neon-lime text-xs block mb-2">MEDIA / LINK (optional)</label>
+        <input id="replyMedia" type="text" class="w-full bg-[#0f0022] border-2 border-[#00ffff] rounded-3xl p-4 text-sm" placeholder="https://...">
+      </div>
+      <div class="flex gap-4 mt-8">
+        <button onclick="closeReplyModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">NEVERMIND</button>
+        <button onclick="postReply()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SEND REPLY</button>
+      </div>
+    </div>
+  </div>
+  <!-- ALTERS MODAL -->
+  <div id="altersModal" class="hidden fixed inset-0 z-[60] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0 border-b border-zinc-800">
+      <div>
+        <div class="neon-pink text-2xl font-black tracking-tight">MY SYSTEM</div>
+        <div id="alterCount" class="text-zinc-500 text-xs mt-0.5"></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="closeAltersModal()" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-2xl neon-cyan font-bold leading-none">×</button>
+      </div>
+    </div>
+    <!-- Mood graph strip -->
+    <div class="flex-shrink-0 px-5 pt-4 pb-3 border-b border-zinc-800" style="min-height:27vh;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 0%, rgba(255,0,204,0.07) 0%, transparent 70%)">
+      <div class="flex items-center justify-between mb-3">
+        <div class="neon-pink text-xs font-black tracking-widest" style="text-shadow:0 0 8px var(--neon-pink)">THIS WEEK'S MOOD</div>
+        <div id="moodGraphAlterTag" class="text-zinc-600 text-[10px] font-bold"></div>
+      </div>
+      <canvas id="moodGraph" class="w-full flex-1" style="min-height:0"></canvas>
+    </div>
+    <!-- Alter list -->
+    <div id="alters-list" class="flex-1 overflow-y-auto px-4 py-4 space-y-4"></div>
+    <!-- Add alter -->
+    <div class="flex-shrink-0 border-t border-zinc-800 px-4 py-4 bg-[#0a001f]">
+      <div class="flex gap-3">
+        <input id="newAlterName" placeholder="new alter name…" class="flex-1 bg-[#0f0022] border border-zinc-700 focus:border-pink-400 rounded-2xl px-4 py-3 text-sm outline-none transition-colors">
+        <button onclick="addNewAlter()" class="px-5 py-3 rounded-2xl font-black text-sm text-[#0a001f]" style="background:linear-gradient(to right,#ff00cc,#cc44ff)">+ ADD</button>
+      </div>
+    </div>
+  </div>
+  <!-- FEEDBACK MODAL -->
+  <div id="feedbackModal" class="hidden fixed inset-0 z-[57] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <div id="feedbackAlterName" class="neon-lime font-bold text-xl"></div>
+        <button onclick="closeFeedbackModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <div class="neon-cyan text-sm mb-6">CONTACT DETAILS<br><span id="feedbackContact" class="text-xs"></span></div>
+      <textarea id="feedbackMessage" rows="6" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-cyan resize-none" placeholder="your feedback message..."></textarea>
+      <div class="flex gap-4 mt-8">
+        <button onclick="closeFeedbackModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">NEVERMIND</button>
+        <button onclick="sendFeedback()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SEND FEEDBACK</button>
+      </div>
+    </div>
+  </div>
+  <!-- DM HUB MODAL -->
+  <div id="dmHubModal" class="hidden fixed inset-0 z-[65] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0 border-b border-zinc-800">
+      <div>
+        <div class="neon-pink text-2xl font-black tracking-tight">DM ALTERS</div>
+        <div class="text-zinc-500 text-xs mt-0.5">send a message to another headmate</div>
+      </div>
+      <button onclick="closeDMHub()" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-2xl neon-cyan font-bold leading-none">×</button>
+    </div>
+    <div id="dmAltersList" class="flex-1 overflow-y-auto px-4 py-4 space-y-3"></div>
+  </div>
+  <!-- DM CHAT MODAL -->
+  <div id="dmChatModal" class="hidden fixed inset-0 z-[66] flex flex-col" style="background:#000000">
+    <!-- Chat header -->
+    <div class="flex items-center gap-3 px-4 pt-5 pb-4 flex-shrink-0 border-b border-zinc-800 bg-[#0a001f]">
+      <button onclick="closeDMChat()" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center neon-cyan">
+        <i class="fa fa-arrow-left text-sm"></i>
+      </button>
+      <div id="dmChatAvatar" class="w-9 h-9 rounded-xl border-2 border-zinc-600 overflow-hidden flex-shrink-0"><img id="dmChatAvatarImg" class="w-full h-full object-cover" src=""></div>
+      <div class="flex-1 min-w-0">
+        <div id="dmChatHeader" class="font-black text-base neon-pink leading-tight"></div>
+        <div id="dmChatSubtitle" class="text-zinc-500 text-xs"></div>
+      </div>
+      <button onclick="returnToModal='dmChatModal';closeDMChat();showAltersModal()" class="text-xs text-zinc-500 border border-zinc-700 rounded-xl px-3 py-2 font-bold">SWITCH</button>
+    </div>
+    <!-- Messages -->
+    <div id="dmMessages" class="flex-1 overflow-y-auto px-4 py-4 space-y-3"></div>
+    <!-- Input -->
+    <div class="flex-shrink-0 border-t border-zinc-800 px-4 py-3 bg-[#0a001f] flex gap-3 items-end">
+      <input id="dmInput" type="text" placeholder="message…" class="flex-1 bg-[#0f0022] border border-zinc-700 focus:border-pink-400 rounded-2xl px-4 py-3 text-sm outline-none transition-colors" onkeydown="if(event.key==='Enter')sendDM()">
+      <button onclick="sendDM()" class="px-5 py-3 rounded-2xl font-black text-sm text-[#0a001f] flex-shrink-0" style="background:linear-gradient(to right,#ff00cc,#00ffff)">SEND</button>
+    </div>
+  </div>
+  <!-- SCREAM DETAIL MODAL -->
+  <div id="screamDetailModal" class="hidden fixed inset-0 z-[70] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
+      <div class="flex justify-between items-center mb-6">
+        <button onclick="returnToModal='screamDetailModal';closeScreamDetail();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+          <i class="fa fa-users text-xl"></i>
+          <span class="font-bold">SWITCH ALTER</span>
+        </button>
+        <button onclick="closeScreamDetail()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <div id="detailPost" class="mb-8"></div>
+      <div class="text-xs neon-lime mb-4">SCREECHES</div>
+      <div id="detailComments" class="space-y-6"></div>
+      <div class="mt-8 flex gap-3">
+        <button onclick="openReplyModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">REPLY TO THIS SCREAM</button>
+      </div>
+    </div>
+  </div>
+  <!-- MEDIA VIEWER -->
+  <div id="mediaModal" class="hidden fixed inset-0 z-[80] flex flex-col" style="background:#000000">
+    <div class="flex items-center justify-between px-4 pt-4 pb-3 flex-shrink-0 border-b border-zinc-800">
+      <span class="neon-pink text-2xl font-black tracking-[-2px]">VOIDSCREAM</span>
+      <button onclick="closeMediaModal()" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-2xl neon-cyan font-bold leading-none">×</button>
+    </div>
+    <div id="mediaContainer" class="flex-1 flex items-center justify-center p-4"></div>
+  </div>
+  <!-- CALENDAR MODAL -->
+  <div id="calendarModal" class="hidden fixed inset-0 z-[60] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
+      <div class="flex items-center justify-between mb-6">
+        <button onclick="returnToModal='calendarModal';closeCalendarModal();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+          <i class="fa fa-users text-xl"></i>
+          <span class="font-bold">SWITCH ALTER</span>
+        </button>
+        <div onclick="prevMonth()" class="neon-cyan text-4xl cursor-pointer">‹</div>
+        <div id="calendarTitle" class="neon-pink text-3xl font-black">MARCH 2026</div>
+        <div onclick="nextMonth()" class="neon-cyan text-4xl cursor-pointer">›</div>
+      </div>
+      <div class="calendar-grid text-center text-xs mb-4">
+        <div class="font-bold text-cyan-400">S</div><div class="font-bold text-cyan-400">M</div><div class="font-bold text-cyan-400">T</div><div class="font-bold text-cyan-400">W</div><div class="font-bold text-cyan-400">T</div><div class="font-bold text-cyan-400">F</div><div class="font-bold text-cyan-400">S</div>
+      </div>
+      <div id="calendarGrid" class="calendar-grid flex-1"></div>
+      <div class="mt-8 border-t border-cyan-400/30 pt-6">
+        <div class="flex justify-between items-center mb-3">
+          <div class="neon-lime text-xs">MOOD TRACKER MODE</div>
+          <button onclick="toggleCalendarMode()" id="calendarModeBtn" class="text-xs px-5 py-1 border border-cyan-400 rounded-full neon-cyan">ALTER MODE</button>
+        </div>
+        <canvas id="calendarMoodGraph" width="300" height="90" class="mx-auto"></canvas>
+        <div id="moodLegend" class="text-[10px] text-center mt-2 text-cyan-400"></div>
+      </div>
+      <div class="mt-6 flex flex-col gap-3">
+        <button onclick="document.getElementById('icsUpload').click()" class="py-4 border-2 border-cyan-400 rounded-3xl text-cyan-400">IMPORT ANOTHER SYSTEM'S CALENDAR (.ICS)</button>
+        <input id="icsUpload" type="file" accept=".ics" class="hidden" onchange="importICS(event)">
+        <div class="flex justify-between">
+          <button onclick="closeCalendarModal()" class="px-6 py-3 border-2 border-zinc-700 rounded-3xl text-sm">CLOSE</button>
+          <button onclick="exportToICS()" class="px-8 py-3 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">EXPORT .ICS</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- MEMORY ARCHIVE MODAL -->
+  <div id="memoryArchiveModal" class="hidden fixed inset-0 z-[75] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
+      <div class="flex justify-between mb-6">
+        <div id="archiveAlterName" class="neon-pink text-3xl font-black"></div>
+        <button onclick="closeMemoryArchiveModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <div id="archiveEulogy" class="bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-6 mb-6 text-sm neon-cyan"></div>
+      <div class="mb-6">
+        <div class="neon-lime text-xs mb-3">SHARED SYSTEM MEMORY CHAT</div>
+        <div id="archiveSharedChat" class="h-48 overflow-y-auto bg-[#0a001f] border border-cyan-400/30 rounded-3xl p-4 space-y-3 text-sm"></div>
+        <div class="flex gap-3 mt-3">
+          <input id="archiveSharedInput" type="text" placeholder="add shared memory..." class="flex-1 bg-[#0f0022] border-2 border-cyan-400 rounded-3xl px-6 py-4 text-sm neon-cyan">
+          <button onclick="postArchiveShared()" class="px-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">SHARE</button>
+        </div>
+      </div>
+      <div>
+        <div class="neon-lime text-xs mb-3">PRIVATE ARCHIVE DM (with this alter)</div>
+        <div id="archivePrivateDM" class="h-48 overflow-y-auto bg-[#0a001f] border border-pink-400/30 rounded-3xl p-4 space-y-3 text-sm"></div>
+        <div class="flex gap-3 mt-3">
+          <input id="archivePrivateInput" type="text" placeholder="private message..." class="flex-1 bg-[#0f0022] border-2 border-pink-400 rounded-3xl px-6 py-4 text-sm neon-cyan">
+          <button onclick="postArchivePrivate()" class="px-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">SEND</button>
+        </div>
+      </div>
+      <div class="flex gap-4 mt-8">
+        <button onclick="saveArchiveToCalendar()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">SAVE MEMORY TO CALENDAR</button>
+        <button onclick="deleteArchive()" class="flex-1 py-5 bg-red-600 text-white rounded-3xl">DELETE ARCHIVE FOREVER</button>
+      </div>
+    </div>
+  </div>
+  <!-- PASSWORD MODAL (enhanced security) -->
+  <div id="passwordModal" class="hidden fixed inset-0 z-[63] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col text-center">
+      <div id="passwordModalTitle" class="neon-pink text-3xl font-black mb-6"></div>
+      <input id="passwordInput" type="password" placeholder="NEW PASSWORD" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-5 text-xl text-center neon-cyan mb-3">
+      <input id="passwordConfirm" type="password" placeholder="CONFIRM PASSWORD" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-5 text-xl text-center neon-cyan mb-3 hidden">
+      <div id="passwordStrength" class="text-xs neon-lime mb-4 text-left px-2"></div>
+      <div onclick="togglePasswordVisibility()" class="cursor-pointer text-xs neon-lime mb-6">SHOW / HIDE</div>
+      <div class="flex gap-4">
+        <button onclick="cancelPassword()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">CANCEL</button>
+        <button onclick="submitPassword()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">CONFIRM</button>
+      </div>
+      <div id="passwordError" class="text-red-400 text-xs mt-4 hidden"></div>
+    </div>
+  </div>
+  <!-- FULLSCREEN ALTER EDIT MODAL -->
+  <div id="alterEditModal" class="hidden alter-edit-fullscreen">
+    <div class="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0 border-b border-zinc-800">
+      <div class="flex items-center gap-3 min-w-0">
+        <div id="editAlterAvatarWrap" class="w-12 h-12 rounded-2xl border-2 overflow-hidden flex-shrink-0 relative">
+          <img id="editAlterAvatarImg" class="w-full h-full object-cover" src="">
+          <label class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+            <i class="fa fa-camera text-white text-sm"></i>
+            <input type="file" accept="image/*" class="hidden" id="editAlterAvatarInput">
+          </label>
+        </div>
+        <div class="min-w-0">
+          <div id="editAlterTitle" class="font-black text-lg leading-tight truncate"></div>
+          <div id="editAlterSubtitle" class="text-zinc-500 text-xs"></div>
+        </div>
+      </div>
+      <button onclick="closeAlterEditModal()" class="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-2xl neon-cyan font-bold leading-none flex-shrink-0">×</button>
+    </div>
+    <div id="alterEditContent" class="flex-1 overflow-y-auto px-5 py-4"></div>
+    <div id="alterEditActions" class="flex-shrink-0 border-t border-zinc-800 px-5 py-4 bg-[#0a001f] flex gap-3"></div>
+  </div>
+  <!-- NUKE MODAL -->
+  <div id="nukeModal" class="hidden fixed inset-0 z-[60] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-6 flex flex-col text-center">
+      <h2 class="neon-pink text-4xl font-black tracking-[-3px]">NUKE THE PAST</h2>
+      <p class="neon-cyan text-sm mt-6">For your own health. Delete old screams going backwards in time.</p>
+      <div class="grid grid-cols-2 gap-4 mt-10">
+        <button onclick="confirmNuke(10)" class="py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">10 MINUTES</button>
+        <button onclick="confirmNuke(30)" class="py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">30 MINUTES</button>
+        <button onclick="confirmNuke(60)" class="py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">1 HOUR</button>
+        <button onclick="confirmNuke(1440)" class="py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">1 DAY</button>
+        <button onclick="confirmNuke(10080)" class="py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl col-span-2">1 WEEK</button>
+      </div>
+      <div id="alterDeathSection" class="mt-8 hidden">
+        <button onclick="openAlterDeathModal()" class="w-full py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">ALTER DEATH / SEPARATION</button>
+      </div>
+      <div class="mt-8 border-t border-zinc-700 pt-6 text-left">
+        <p class="neon-lime text-xs font-bold mb-1">BACKUP YOUR SYSTEM</p>
+        <p class="text-zinc-400 text-xs mb-4">Download a recovery file. If your browser ever clears its storage, restore from this file to get everything back.</p>
+        <button onclick="exportBackup()" class="w-full py-4 neon-lime border border-lime-400 font-bold rounded-3xl mb-3">⬇ DOWNLOAD BACKUP FILE</button>
+        <label class="cursor-pointer block w-full py-4 neon-cyan border border-cyan-400 font-bold rounded-3xl text-center">
+          ⬆ RESTORE FROM BACKUP
+          <input type="file" accept=".json" class="hidden" onchange="restoreFromBackup(event)">
+        </label>
+      </div>
+      <div class="mt-4 border-t border-zinc-700 pt-6 text-left">
+        <p class="neon-pink text-xs font-bold mb-1">SYSTEM LOCK</p>
+        <p id="sysLockNukeStatus" class="text-zinc-400 text-xs mb-4">Set a password so only your system can unlock this device's data.</p>
+        <button id="sysLockNukeBtn" onclick="openSetSystemLock()" class="w-full py-4 neon-pink border border-pink-400 font-bold rounded-3xl">🔒 SET SYSTEM LOCK</button>
+      </div>
+      <div class="mt-4 border-t border-red-900 pt-6">
+        <p class="text-red-400 text-xs mb-4">DANGER — erases everything: alters, screams, DMs, moods, and archives.</p>
+        <button onclick="confirmWipeAll()" class="w-full py-4 bg-red-700 hover:bg-red-600 text-white font-black rounded-3xl">☠ WIPE ALL DATA</button>
+      </div>
+      <button onclick="closeNukeModal()" class="mt-4 w-full py-4 border-2 border-zinc-700 rounded-3xl text-sm">CANCEL</button>
+    </div>
+  </div>
+  <!-- ALTER DEATH EULOGY MODAL -->
+  <div id="alterDeathModal" class="hidden fixed inset-0 z-[71] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <div class="neon-pink text-3xl font-black">EULOGY FOR DEPARTED ALTER</div>
+        <button onclick="closeAlterDeathModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <textarea id="eulogyText" rows="8" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-cyan resize-none" placeholder="They fought bravely in the shadows... They protected the system when no one else could..."></textarea>
+      <div class="flex gap-4 mt-8">
+        <button onclick="closeAlterDeathModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">NEVERMIND</button>
+        <button onclick="confirmAlterDeath()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SEAL THEIR FATE</button>
+      </div>
+    </div>
+  </div>
+  <!-- NUKE CONFIRMATION -->
+  <div id="nukeConfirmModal" class="hidden fixed inset-0 z-[70] flex flex-col items-center justify-center" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
+    <div class="w-full px-8 py-8 flex flex-col text-center">
+      <h2 class="neon-pink text-3xl font-black mb-6">ARE YOU SURE?</h2>
+      <p id="confirmText" class="neon-cyan text-sm mb-8"></p>
+      <div class="flex gap-4">
+        <button onclick="closeNukeConfirm()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">NEVERMIND</button>
+        <button onclick="executeNukeOrWipe()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">YES NUKE IT</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+    const APP_VERSION = "1.3";
+    let _updateDismissed = false;
+    let screams = [];
+    let alters = [];
+    let currentAlterIndex = 0;
+    let currentDetailPostId = null;
+    let particles = [];
+    let moods = [];
+    let archives = [];
+    let _now = new Date();
+    let currentMonth = _now.getMonth();
+    let currentYear = _now.getFullYear();
+    let pendingNukeMinutes = 0;
+    let selectedScreamMood = '🌑';
+    let showAllAltersInCalendar = false;
+    let currentDMTarget = null;
+    let dmMessages = {};
+    let unreadNotifications = {};
+    let calendarMode = 'alter';
+    let returnToModal = null;
+    let currentArchiveIndex = null;
+    let saveToThisAlterOnly = true;
+    let feedbackTargetIndex = null;
+    let pendingPasswordCallback = null;
+    let currentPasswordAlter = null;
+    let isSettingPassword = false;
+    // GEMMA 3 270M (optimized)
+    let wllamaInstance = null;
+    let gemmaLoaded = false;
+    const GEMMA_MODEL_URL = "https://huggingface.co/google/gemma-3-270M-GGUF/resolve/main/gemma-3-270M-Q4_K_M.gguf";
+    const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
+    const themes = {
+      abyss:    {primary: '#ff00cc', accent: '#00ffff', name: 'ABYSS',    desc: 'void & neon',       icon: 'fa-eye'},
+      blood:    {primary: '#ff0033', accent: '#aa0022', name: 'BLOOD',    desc: 'crimson rage',      icon: 'fa-heart'},
+      electric: {primary: '#00ccff', accent: '#0088ff', name: 'ELECTRIC', desc: 'storm current',     icon: 'fa-bolt'},
+      toxic:    {primary: '#ccff00', accent: '#88ff00', name: 'TOXIC',    desc: 'acid bloom',        icon: 'fa-biohazard'},
+      phantom:  {primary: '#cc00ff', accent: '#9900cc', name: 'PHANTOM',  desc: 'spectre light',     icon: 'fa-ghost'},
+      inferno:  {primary: '#ff6600', accent: '#ff2200', name: 'INFERNO',  desc: 'burning core',      icon: 'fa-fire'},
+      spectral: {primary: '#cccccc', accent: '#888888', name: 'SPECTRAL', desc: 'pale grey mist',    icon: 'fa-moon'},
+      matrix:   {primary: '#00ff44', accent: '#008822', name: 'MATRIX',   desc: 'digital rain',      icon: 'fa-terminal'},
+      chaos:    {primary: '#ff00cc', accent: '#ccff00', name: 'CHAOS',    desc: 'collision state',   icon: 'fa-infinity'}
+    };
+    const NEON_PALETTE = [
+      {color:'#ff00cc',theme:'abyss'},{color:'#ff0033',theme:'blood'},{color:'#00ccff',theme:'electric'},
+      {color:'#ccff00',theme:'toxic'},{color:'#cc00ff',theme:'phantom'},{color:'#ff6600',theme:'inferno'},
+      {color:'#00ff44',theme:'matrix'},{color:'#ff4488',theme:'chaos'},{color:'#00ffaa',theme:'electric'},
+      {color:'#ff3300',theme:'blood'},{color:'#8800ff',theme:'phantom'},{color:'#ffcc00',theme:'inferno'}
+    ];
+    let _lastPaletteIdx = -1;
+    function _randomPalette() {
+      let idx;
+      do { idx = Math.floor(Math.random() * NEON_PALETTE.length); } while (idx === _lastPaletteIdx && NEON_PALETTE.length > 1);
+      _lastPaletteIdx = idx;
+      return NEON_PALETTE[idx];
+    }
+    let neonIntensity = 50;
+    function setNeonIntensity(val) {
+      neonIntensity = parseInt(val);
+      localStorage.setItem('vs_intensity', neonIntensity);
+      const labelEl = document.getElementById('intensityLabel');
+      if (labelEl) {
+        const dots = Math.round(neonIntensity / 20);
+        labelEl.textContent = '●'.repeat(dots) + '○'.repeat(5 - dots);
+      }
+      const slider = document.getElementById('neonIntensitySlider');
+      if (slider && slider.value !== String(neonIntensity)) slider.value = neonIntensity;
+      const alter = alters[currentAlterIndex];
+      if (alter) applyTheme(alter.theme || 'abyss');
+    }
+    function loadNeonIntensity() {
+      const saved = localStorage.getItem('vs_intensity');
+      if (saved !== null) neonIntensity = parseInt(saved);
+    }
+    function previewCustomColor(hex) {
+      const orb = document.getElementById('customColorOrb');
+      if (orb) { orb.style.background = hex; orb.style.boxShadow = `0 0 12px ${hex}`; }
+    }
+    function applyCustomColor() {
+      const picker = document.getElementById('customColorPicker');
+      if (!picker) return;
+      const hex = picker.value;
+      const alter = alters[currentAlterIndex];
+      if (alter) {
+        alter.customPrimary = hex;
+        const salt = alter.id || currentAlterIndex + 'voidsalt';
+        alter.sealedCustom = btoa(hex + salt);
+        saveData();
+      }
+      applyTheme('custom');
+      renderThemeGrid();
+    }
+    const moodToTheme = {
+      '😡': 'inferno',
+      '😢': 'spectral',
+      '😎': 'electric',
+      '🥰': 'phantom',
+      '🔥': 'blood',
+      '🌑': 'abyss',
+      '🌀': 'matrix'
+    };
+
+    async function initGemma() {
+      if (gemmaLoaded || wllamaInstance) return;
+      try {
+        wllamaInstance = new Wllama(GEMMA_MODEL_URL, { nThreads: 2, nContext: 512 });
+        await wllamaInstance.loadModel();
+        gemmaLoaded = true;
+      } catch (e) {}
+    }
+
+    function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    async function counselorRespond(msg, partnerIndex) {
+      const low = msg.toLowerCase();
+      const a = alters[currentAlterIndex];
+      const aName = a ? a.name : 'you';
+      const bName = partnerIndex !== null && alters[partnerIndex] ? alters[partnerIndex].name : null;
+      const couples = bName !== null;
+      let response;
+      if (/suicid|kill myself|end it all|don't want to be here|want to die|hurt myself|self.harm/.test(low)) {
+        response = _pick([
+          `I need to pause everything right now and say this clearly: please contact the 988 Suicide & Crisis Lifeline by calling or texting 988. What you're feeling is real and it matters enormously — but I'm a tool for processing, not a substitute for a real human who can help you right now. Please reach out. You deserve that support.`,
+          `This is serious and I want you to be safe. Call or text 988 — they're there 24/7 and they genuinely care. Please reach out before anything else. I'll be here when you're ready to process, but right now a real person who can truly help is what you need.`
+        ]);
+      } else if (/angry|furious|rage|so angry|pissed|hate|i want to scream|i want to break|i'm done|i am done/.test(low)) {
+        response = couples
+          ? _pick([`${aName}, that anger is telling you something important. ${bName}, can you hear what's underneath it before responding? Sometimes rage is just pain that got loud. Let's slow this down together.`, `Both of you are holding a lot right now. ${aName}, can you tell ${bName} what you actually need — not what you're angry about, but what you're missing?`])
+          : _pick([`That anger is valid. It's energy that needs somewhere to go. Before it turns inward — what's it protecting? What's underneath it?`, `Rage this intense usually has something underneath it — grief, fear, exhaustion. You don't have to figure it out right now. What does your body feel like when you're this angry?`, `You're allowed to be furious. Anger isn't wrong. What happened? Tell me as much or as little as you want.`]);
+      } else if (/sad|crying|cry|tears|grief|loss|lost|miss|heartbreak|broken/.test(low)) {
+        response = couples
+          ? _pick([`Grief shared between two people can feel impossible — you're each carrying your own weight AND watching the other struggle. ${aName}, ${bName} — is there one thing you could do for each other in the next hour?`, `Loss doesn't have a right way to be felt. ${aName} and ${bName}, you're both allowed to grieve differently and still be there for each other.`])
+          : _pick([`Grief has no timeline and no rules. Whatever you're feeling right now is exactly the right thing to be feeling. You don't have to fix it or explain it.`, `I'm so sorry you're carrying this. Sadness this heavy can feel like it'll never lift — but it does shift, even when it doesn't feel like it. What's the loss that's sitting heaviest right now?`, `It's okay to cry here. You don't have to be okay. What do you need right now — to be heard, to vent, or to just sit with it?`]);
+      } else if (/anxious|anxiety|panic|scared|fear|terrified|overwhelm|too much|can't breathe|spiraling/.test(low)) {
+        response = couples
+          ? _pick([`When anxiety enters a relationship it can make both people feel unsafe. ${aName}, ${bName} — can one of you name one thing that feels solid right now? Something that isn't going anywhere?`, `Panic can make everything feel like an emergency. ${aName} and ${bName}, let's find the ground first. Name three things you can both physically see right now.`])
+          : _pick([`Let's ground you right now. Name five things you can see. Four you can touch. Three you can hear. You don't have to do it out loud — just let your attention do it.`, `Your nervous system is sounding an alarm. It's trying to protect you, even if it's misfiring. Can you put one hand on your chest and take one slow breath? Just one. I'll be here.`, `Overwhelm feels like everything at once. Can you pick one single thing — just one — that needs your attention in the next ten minutes? Just that. Nothing else.`]);
+      } else if (/dissociat|switching|switch|fronting|alter|headspace|system|part|plural/.test(low)) {
+        response = _pick([`Dissociation is your system doing what it was built to do — protect. But I hear you that it doesn't always feel like protection. What does it feel like from the inside right now?`, `Switching can feel disorienting, like losing time or waking up mid-scene. Are you grounded right now, or is this message coming from a floaty place?`, `Your system carries a lot. Each part exists for a reason, even the ones that are hard to be around. Who's present right now, and what do they need?`, `The pluralness of you is not a flaw. It's a structure that kept you alive. Is there tension between parts right now, or is it more of a fog?`]);
+      } else if (/trauma|abuse|hurt|happened to me|they did|childhood|memory|flashback|nightmare/.test(low)) {
+        response = _pick([`You don't have to tell me the whole story. Not at once, not ever if you don't want to. What you've been through is real, and it matters. What do you need right now — to be heard, or to figure out a next step?`, `Trauma has a way of staying in the body long after the mind tries to move on. You don't have to process all of it today. What's the piece that feels most present right now?`, `I want you to know that what happened to you is not evidence of your worth. What you survived is real. I'm listening as carefully as I can. What wants to be said first?`]);
+      } else if (/relationship|partner|boyfriend|girlfriend|ex|they don't|they never|fight|argument|broke up|breaking up/.test(low)) {
+        response = couples
+          ? _pick([`${aName} and ${bName}, you're both here — which already means something. Conflict isn't the end of a relationship, it's information about what needs tending. What's the thing neither of you has said out loud yet?`, `Sometimes couples get stuck arguing about the surface thing and miss the deeper need underneath. ${aName}, what do you actually need from ${bName}? Not what you're upset about — what you need.`])
+          : _pick([`Relationship pain is some of the sharpest there is. It touches everything. What happened — or what keeps happening?`, `I'm not here to tell you what to do about your relationship. But I can help you figure out what you actually want, underneath the hurt. What does that look like?`]);
+      } else if (/numb|empty|nothing|hollow|don't feel|can't feel|void|disconnected|flat/.test(low)) {
+        response = _pick([`Numbness is often what happens when the nervous system has been overwhelmed for too long. It's protective, even when it feels like absence. Are you safe right now?`, `Feeling nothing can be its own kind of pain — maybe worse than feeling everything. When did it start? Was there a moment, or did it creep in?`, `Empty can feel like failure. It isn't. Sometimes the system just runs out of bandwidth. When was the last time you slept, ate, or did something that wasn't effort?`]);
+      } else if (/lonely|alone|no one|nobody|isolated|no friends|abandoned|left me/.test(low)) {
+        response = _pick([`Loneliness is one of the heaviest things a person can carry. You reached out here, which took something. I want you to know this space is listening. What does the loneliness feel like today?`, `Being alone and feeling alone are different — and you seem to be talking about the second kind. That one runs deeper. What would "not alone" feel like for you?`, `You aren't alone in feeling alone. I know that sounds impossible. But this feeling is one of the most universal human experiences. What do you need most right now — connection, comfort, or just to be witnessed?`]);
+      } else if (/thank|helped|better|good session|feel good now|feeling better/.test(low)) {
+        response = _pick([`I'm really glad. Take that with you. You did the work of reaching in and asking — that's not nothing.`, `That means a lot to hear. Take care of yourself today. You can always come back here.`, `Good. Rest in that for a moment. You deserve to feel better.`]);
+      } else if (/help|what do i do|advice|don't know what to do|lost|confused|stuck/.test(low)) {
+        response = _pick([`Let's slow down and look at this together. What's the decision or situation that has you stuck? Just the bones of it — we can fill in the details from there.`, `Being stuck usually means two or more real needs are pulling in different directions. What are the things you're trying to honor at once?`, `I can't tell you what to do — but I can help you hear what you already know. What does the part of you that isn't scared or stuck say about this?`]);
+      } else {
+        response = _pick([`I'm here. Tell me more — what's sitting heaviest right now?`, `Say more. I want to understand what this actually feels like from the inside.`, `I hear you. What's underneath that? What's the thing that made this feel necessary to say out loud?`, `Keep going if you want. There's no rush here and no wrong way to do this.`, `I'm listening. What do you need from this conversation — to be heard, to think it through, or something else?`]);
+      }
+      const typingDelay = Math.max(900, response.length * 32);
+      await new Promise(r => setTimeout(r, typingDelay));
+      return response;
+    }
+    async function generateWithGemma(targetIndex, userMessage, isCounselor = false, partnerIndex = null) {
+      if (isCounselor) return await counselorRespond(userMessage, partnerIndex);
+      await initGemma();
+      const target = alters[targetIndex];
+      const base = alters[target.basePersonality] || target;
+      if (wllamaInstance && gemmaLoaded) {
+        const systemPrompt = `You are ${base.name} (echo clone). Respond in their exact voice using their mood (${selectedScreamMood || '🌑'}). Short, raw, personal.`;
+        const result = await wllamaInstance.generate(`${systemPrompt}\n\nUser: ${userMessage}\nYou:`, { maxTokens: 60, temperature: 0.85, topP: 0.9 });
+        return result.trim();
+      }
+      const echoTemplates = [
+        `${selectedScreamMood || '🌑'} ${userMessage}… exactly what I was thinking`,
+        `Yeah… "${userMessage.toLowerCase()}" hits different when you're in the void`,
+        `I would've said it differently but that's… yeah. That's it.`,
+        `Something about hearing that out loud makes it feel more real. And worse.`
+      ];
+      await new Promise(r => setTimeout(r, 600 + Math.random() * 800));
+      return _pick(echoTemplates);
+    }
+
+    async function hashPassword(pw, salt) {
+      if (!pw) return '';
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pw + salt);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function generateSalt() {
+      return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function _esc(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function clearModalTextFields() {
+      const fields = ['screamText','customMoodInput','mediaUrl','replyText','replyMedia','dmInput','eulogyText','newAlterName','archiveSharedInput','archivePrivateInput','firstAlterName','feedbackMessage','passwordInput','passwordConfirm'];
+      fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    }
+
+    function ensureCurrentAlter() {
+      if (!alters || alters.length === 0) { alert("No alter selected yet. Create one first."); return false; }
+      if (currentAlterIndex < 0 || currentAlterIndex >= alters.length) currentAlterIndex = 0;
+      updateComposerUI();
+      updateDMNotificationBadge();
+      return true;
+    }
+
+    const VS = {
+      screams: 'vs_screams',
+      alters: 'vs_alters',
+      moods: 'vs_moods',
+      dms: 'vs_dms',
+      notifications: 'vs_notifications',
+      archives: 'vs_archives'
+    };
+    const VS_LEGACY = {
+      screams: 'voidscreams',
+      alters: 'voidalters',
+      moods: 'voidmoods',
+      dms: 'voidDMs',
+      notifications: 'voidNotifications',
+      archives: 'voidArchives'
+    };
+    function _vsGet(key, fallback) {
+      const raw = localStorage.getItem(VS[key]);
+      if (raw) return JSON.parse(raw);
+      const legacy = localStorage.getItem(VS_LEGACY[key]);
+      if (legacy) {
+        const parsed = JSON.parse(legacy);
+        localStorage.setItem(VS[key], legacy);
+        localStorage.removeItem(VS_LEGACY[key]);
+        return parsed;
+      }
+      return fallback;
+    }
+    function loadData() {
+      screams = _vsGet('screams', []);
+      alters = _vsGet('alters', []);
+      moods = _vsGet('moods', []);
+      dmMessages = _vsGet('dms', {});
+      unreadNotifications = _vsGet('notifications', {});
+      archives = _vsGet('archives', []);
+      if (alters.length > 0) currentAlterIndex = 0;
+    }
+    function saveData() {
+      localStorage.setItem(VS.screams, JSON.stringify(screams));
+      localStorage.setItem(VS.alters, JSON.stringify(alters));
+      localStorage.setItem(VS.moods, JSON.stringify(moods));
+      localStorage.setItem(VS.dms, JSON.stringify(dmMessages));
+      localStorage.setItem(VS.notifications, JSON.stringify(unreadNotifications));
+      localStorage.setItem(VS.archives, JSON.stringify(archives));
+    }
+    function wipeAllData() {
+      Object.values(VS).forEach(k => localStorage.removeItem(k));
+      Object.values(VS_LEGACY).forEach(k => localStorage.removeItem(k));
+      localStorage.removeItem('vs_system_pw');
+      screams = []; alters = []; moods = []; dmMessages = {}; unreadNotifications = {}; archives = [];
+      currentAlterIndex = 0;
+    }
+
+    function _getSysPw() {
+      try { return JSON.parse(localStorage.getItem('vs_system_pw')); } catch(e) { return null; }
+    }
+    function _setSysPw(obj) {
+      if (obj) localStorage.setItem('vs_system_pw', JSON.stringify(obj));
+      else localStorage.removeItem('vs_system_pw');
+    }
+
+    async function unlockSystem() {
+      const pw = document.getElementById('gate0-pw').value;
+      const errEl = document.getElementById('gate0-error');
+      errEl.classList.add('hidden');
+      if (!pw) { errEl.textContent = 'Enter your password.'; errEl.classList.remove('hidden'); return; }
+      const stored = _getSysPw();
+      if (!stored) { document.getElementById('gate0').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); initApp(); return; }
+      const hash = await hashPassword(pw, stored.salt);
+      if (hash === stored.hash) {
+        document.getElementById('gate0-pw').value = '';
+        document.getElementById('gate0').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        initApp();
+      } else {
+        errEl.textContent = 'Wrong password. Try again.';
+        errEl.classList.remove('hidden');
+        document.getElementById('gate0-pw').value = '';
+        document.getElementById('gate0-pw').focus();
+      }
+    }
+
+    function openSetSystemLock() {
+      const stored = _getSysPw();
+      const title = document.getElementById('sysLockTitle');
+      const desc = document.getElementById('sysLockDesc');
+      const currentPwEl = document.getElementById('sysLockCurrentPw');
+      const removeBtnEl = document.getElementById('removeSysLockBtn');
+      document.getElementById('sysLockNewPw').value = '';
+      document.getElementById('sysLockConfirmPw').value = '';
+      document.getElementById('sysLockCurrentPw').value = '';
+      document.getElementById('sysLockError').classList.add('hidden');
+      if (stored) {
+        title.textContent = 'CHANGE SYSTEM LOCK';
+        desc.textContent = 'Enter your current password, then choose a new one.';
+        currentPwEl.classList.remove('hidden');
+        removeBtnEl.classList.remove('hidden');
+      } else {
+        title.textContent = 'SET SYSTEM LOCK';
+        desc.textContent = 'This password will be required every time you return to your system on this device.';
+        currentPwEl.classList.add('hidden');
+        removeBtnEl.classList.add('hidden');
+      }
+      document.getElementById('nukeModal').classList.add('hidden');
+      document.getElementById('systemLockModal').classList.remove('hidden');
+    }
+
+    function closeSystemLockModal() {
+      document.getElementById('systemLockModal').classList.add('hidden');
+      document.getElementById('sysLockError').classList.add('hidden');
+    }
+
+    async function saveSystemLock() {
+      const errEl = document.getElementById('sysLockError');
+      errEl.classList.add('hidden');
+      const stored = _getSysPw();
+      const newPw = document.getElementById('sysLockNewPw').value;
+      const confirmPw = document.getElementById('sysLockConfirmPw').value;
+      if (!newPw) { errEl.textContent = 'Enter a new password.'; errEl.classList.remove('hidden'); return; }
+      if (newPw !== confirmPw) { errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('hidden'); return; }
+      if (newPw.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; errEl.classList.remove('hidden'); return; }
+      if (stored) {
+        const currentPw = document.getElementById('sysLockCurrentPw').value;
+        const currentHash = await hashPassword(currentPw, stored.salt);
+        if (currentHash !== stored.hash) { errEl.textContent = 'Current password is wrong.'; errEl.classList.remove('hidden'); return; }
+      }
+      const salt = generateSalt();
+      const hash = await hashPassword(newPw, salt);
+      _setSysPw({ hash, salt });
+      closeSystemLockModal();
+      updateSysLockUI();
+      document.getElementById('sysLockNewPw').value = '';
+      document.getElementById('sysLockConfirmPw').value = '';
+      alert('System lock saved. You will need this password on your next visit.');
+    }
+
+    async function removeSystemLock() {
+      const stored = _getSysPw();
+      if (!stored) { closeSystemLockModal(); return; }
+      const currentPw = document.getElementById('sysLockCurrentPw').value;
+      if (!currentPw) {
+        const errEl = document.getElementById('sysLockError');
+        errEl.textContent = 'Enter your current password to remove the lock.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      const errEl = document.getElementById('sysLockError');
+      const hash = await hashPassword(currentPw, stored.salt);
+      if (hash !== stored.hash) { errEl.textContent = 'Wrong password.'; errEl.classList.remove('hidden'); return; }
+      _setSysPw(null);
+      closeSystemLockModal();
+      updateSysLockUI();
+      alert('System lock removed. Data will load directly on your next visit.');
+    }
+
+    function updateSysLockUI() {
+      const stored = _getSysPw();
+      const statusEl = document.getElementById('sysLockNukeStatus');
+      const btnEl = document.getElementById('sysLockNukeBtn');
+      if (!statusEl || !btnEl) return;
+      if (stored) {
+        statusEl.textContent = 'System lock is ACTIVE. Password required on every return visit.';
+        statusEl.className = 'neon-lime text-xs mb-4';
+        btnEl.textContent = '🔒 CHANGE / REMOVE SYSTEM LOCK';
+      } else {
+        statusEl.textContent = 'No system lock set. Anyone with access to this browser can open your data.';
+        statusEl.className = 'text-zinc-400 text-xs mb-4';
+        btnEl.textContent = '🔒 SET SYSTEM LOCK';
+      }
+    }
+
+    function exportBackup() {
+      const backup = { _vs_version: 2, _exported: new Date().toISOString() };
+      Object.entries(VS).forEach(([k, storageKey]) => {
+        const val = localStorage.getItem(storageKey);
+        if (val !== null) backup[storageKey] = val;
+      });
+      const sysPw = localStorage.getItem('vs_system_pw');
+      if (sysPw) backup['vs_system_pw'] = sysPw;
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().slice(0,10);
+      a.href = url; a.download = `voidscream-backup-${date}.json`; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function restoreFromBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data._vs_version) { alert('Not a valid VoidScream backup file.'); return; }
+          if (!confirm('This will REPLACE your current data with the backup. Continue?')) return;
+          Object.entries(VS).forEach(([k, storageKey]) => {
+            if (data[storageKey] !== undefined) localStorage.setItem(storageKey, data[storageKey]);
+          });
+          if (data['vs_system_pw']) localStorage.setItem('vs_system_pw', data['vs_system_pw']);
+          alert('Backup restored. Reloading now.');
+          location.reload();
+        } catch(err) {
+          alert('Failed to read backup file. Make sure it is a valid VoidScream backup.');
+        }
+      };
+      reader.readAsText(file);
+    }
+    function createFalling() {
+      const container = document.getElementById('abyss-fall');
+      const symbols = ['🕳️','☠️','💀','🌀','👁️'];
+      for (let i = 0; i < 28; i++) {
+        const el = document.createElement('div');
+        el.className = 'falling';
+        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+        el.style.left = Math.random()*100 + 'vw';
+        el.style.animationDuration = (Math.random()*15 + 8) + 's';
+        el.style.animationDelay = '-' + Math.random()*20 + 's';
+        container.appendChild(el);
+        particles.push(el);
+      }
+    }
+    function renderFeed() {
+      const feed = document.getElementById('feed');
+      feed.innerHTML = '';
+      if (screams.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-center py-20 text-zinc-500';
+        empty.innerHTML = `<p class="neon-cyan text-xl">the abyss is empty...<br>cast your first scream</p>`;
+        feed.appendChild(empty);
+        return;
+      }
+      const pinned = screams.filter(s => s.pinnedBy && s.pinnedBy.includes(currentAlterIndex));
+      const normal = screams.filter(s => !s.pinnedBy || !s.pinnedBy.includes(currentAlterIndex));
+      const sorted = [...pinned, ...normal];
+      sorted.forEach(s => {
+        const alter = alters[s.alterIndex] || {name: "Unknown", handle: "@voidanon", avatar: "https://picsum.photos/id/64/128", color: "#c026d3"};
+        const card = document.createElement('div');
+        card.className = 'post card rounded-3xl p-6 cursor-pointer';
+        card.onclick = () => openScreamDetail(s.id);
+        let contentHTML = `<p class="text-xl neon-cyan">${s.text}</p>`;
+        if (s.media) {
+          const lower = s.media.toLowerCase();
+          if (lower.endsWith('.mp4') || lower.endsWith('.webm')) contentHTML += `<div class="image-wrapper mt-4"><video src="${s.media}" class="post-video" controls onclick="event.stopImmediatePropagation()"></video></div>`;
+          else if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) contentHTML += `<div class="image-wrapper mt-4"><img src="${s.media}" class="post-image" onclick="event.stopImmediatePropagation();viewMedia('${s.media}')"></div>`;
+          else contentHTML += `<div class="mt-4 text-cyan-400 underline"><a href="${s.media}" target="_blank" class="neon-cyan" onclick="event.stopImmediatePropagation()">${s.media}</a></div>`;
+        }
+        const pinIcon = s.pinnedBy && s.pinnedBy.includes(currentAlterIndex) ? '<i class="fa fa-thumbtack text-yellow-400 ml-auto"></i>' : '';
+        card.innerHTML = `
+          <div class="flex gap-3 items-center mb-3">
+            <img src="${alter.avatar}" class="w-9 h-9 rounded-2xl border-2" style="border-color:${alter.color}">
+            <div class="flex-1">
+              <div class="alter-nameplate font-bold" style="color:${alter.color};text-shadow:0 0 8px ${alter.color}">
+                ${alter.symbol ? `<span class="alter-symbol">${alter.symbol}</span>` : ''}
+                <span>${_esc(alter.name)}</span>
+                ${_roleBadgeHTML(alter)}
+                ${alter.fronting ? `<span class="fronting-badge">◆ FRONT</span>` : ''}
+              </div>
+              <div class="flex items-center gap-2 text-xs" style="color:var(--neon-cyan)">
+                <span>${_esc(alter.handle)}</span>
+                ${alter.pronouns ? `<span class="alter-pronouns">${_esc(alter.pronouns)}</span>` : ''}
+              </div>
+            </div>
+            ${pinIcon}
+          </div>
+          ${contentHTML}
+          <div class="flex justify-between items-center mt-6 text-sm">
+            <div class="flex gap-6">
+              <button onclick="vote(${s.id},1);event.stopImmediatePropagation()" class="flex items-center gap-1 neon-cyan"><i class="fa fa-arrow-up"></i> <span id="up-${s.id}">${s.votes ? s.votes.up : 0}</span></button>
+              <button onclick="vote(${s.id},-1);event.stopImmediatePropagation()" class="flex items-center gap-1 neon-pink"><i class="fa fa-arrow-down"></i> <span id="down-${s.id}">${s.votes ? s.votes.down : 0}</span></button>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-zinc-500">
+              <span>${s.mood || '🌑'}</span>
+              <span>${new Date(s.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            </div>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+    }
+    function vote(id, dir) {
+      const s = screams.find(x => x.id === id);
+      if (!s) return;
+      if (!s.votedBy) s.votedBy = {};
+      const currentVote = s.votedBy[currentAlterIndex];
+      if (currentVote === (dir > 0 ? 'up' : 'down')) return;
+      if (!s.votes) s.votes = { up: 0, down: 0 };
+      if (currentVote === 'up') s.votes.up--;
+      if (currentVote === 'down') s.votes.down--;
+      s.votedBy[currentAlterIndex] = dir > 0 ? 'up' : 'down';
+      if (dir > 0) s.votes.up++; else s.votes.down++;
+      saveData();
+      renderFeed();
+    }
+    function postScream() {
+      const text = document.getElementById('screamText').value.trim();
+      let media = document.getElementById('mediaUrl').value.trim();
+      if (!text) return;
+      const customInput = document.getElementById('customMoodInput').value.trim();
+      const moodToUse = customInput || selectedScreamMood;
+      const moodTheme = moodToTheme[moodToUse] || 'abyss';
+      applyTheme(moodTheme);
+      screams.unshift({
+        id: Date.now(),
+        alterIndex: currentAlterIndex,
+        text: text,
+        media: media || null,
+        timestamp: Date.now(),
+        comments: [],
+        votes: { up: 0, down: 0 },
+        votedBy: {},
+        mood: moodToUse,
+        pinnedBy: [],
+        isShared: !saveToThisAlterOnly
+      });
+      saveData();
+      renderFeed();
+      closeScreamModal();
+    }
+    function openScreamModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      if (alters.length === 0) return;
+      updateComposerUI();
+      renderMoodPicker();
+      document.getElementById('screamModal').classList.remove('hidden');
+      setTimeout(() => { document.getElementById('screamText').focus(); }, 100);
+    }
+    function closeScreamModal() {
+      document.getElementById('screamModal').classList.add('hidden');
+      selectedScreamMood = '🌑';
+    }
+    function updateHeaderAlter() {
+      const hAv = document.getElementById('header-alter-avatar');
+      const hImg = document.getElementById('header-alter-img');
+      const hName = document.getElementById('header-alter-name');
+      if (!hAv) return;
+      if (alters.length && alters[currentAlterIndex]) {
+        const a = alters[currentAlterIndex];
+        hImg.src = a.avatar;
+        hAv.style.borderColor = a.color || 'var(--neon-pink)';
+        hAv.classList.remove('hidden');
+        const hRole = _getAlterDisplayRole(a);
+        hName.innerHTML = _esc(a.name.toUpperCase()) + (hRole ? ` <span class="role-badge" style="font-size:8px;color:${a.color || 'var(--neon-pink)'};border-color:${a.color || 'var(--neon-pink)'};background:${(a.color || '#ff00cc')}15;vertical-align:middle">${_esc(hRole)}</span>` : '');
+        hName.style.color = a.color || 'var(--neon-pink)';
+      } else { hAv.classList.add('hidden'); hName.textContent = ''; }
+    }
+    function updateComposerUI() {
+      if (alters.length === 0) return;
+      const alter = alters[currentAlterIndex];
+      updateHeaderAlter();
+      const avatarEl = document.getElementById('composer-avatar');
+      avatarEl.innerHTML = `<img src="${alter.avatar}" class="w-10 h-10 rounded-2xl object-cover">`;
+      avatarEl.style.borderColor = alter.color || 'var(--neon-pink)';
+      document.getElementById('composer-name').textContent = alter.name;
+      document.getElementById('composer-symbol').textContent = alter.symbol || '';
+      const nameplateEl = document.getElementById('composer-nameplate');
+      const c = alter.color || 'var(--neon-pink)';
+      nameplateEl.style.color = c;
+      nameplateEl.style.textShadow = `0 0 10px ${c}, 0 0 20px ${c}`;
+      const handleTextEl = document.getElementById('composer-handle-text');
+      if (handleTextEl) handleTextEl.textContent = alter.handle || `@${alter.name.toLowerCase().replace(/\s/g,'')}`;
+      const roleEl = document.getElementById('composer-role-badge');
+      if (roleEl) {
+        const displayRole = _getAlterDisplayRole(alter);
+        if (displayRole) {
+          roleEl.textContent = displayRole;
+          roleEl.style.color = c;
+          roleEl.style.borderColor = c;
+          roleEl.style.background = c + '15';
+          roleEl.classList.remove('hidden');
+        } else { roleEl.classList.add('hidden'); }
+      }
+      const frontingEl = document.getElementById('composer-fronting-badge');
+      if (frontingEl) frontingEl.classList.toggle('hidden', !alter.fronting);
+      const pronounsEl = document.getElementById('composer-pronouns');
+      if (pronounsEl) pronounsEl.textContent = alter.pronouns || '';
+      loadCurrentTheme();
+    }
+    function renderMoodPicker() {
+      const container = document.getElementById('moodPicker');
+      container.innerHTML = '';
+      moodOptions.forEach(m => {
+        const btn = document.createElement('div');
+        btn.className = `mood-btn ${m === selectedScreamMood ? 'selected' : ''}`;
+        btn.textContent = m;
+        btn.onclick = () => {
+          selectedScreamMood = m;
+          document.getElementById('customMoodInput').value = '';
+          const moodTheme = moodToTheme[m] || 'abyss';
+          applyTheme(moodTheme);
+          renderMoodPicker();
+        };
+        container.appendChild(btn);
+      });
+    }
+    function toggleSaveMode() {
+      saveToThisAlterOnly = !saveToThisAlterOnly;
+      const el = document.getElementById('saveToggle');
+      el.textContent = saveToThisAlterOnly ? "THIS ALTER ONLY" : "SYSTEM SHARE";
+    }
+    function _roleOpts(cur) {
+      const roles = ['','Host','Co-host','Protector','Persecutor','Caretaker','Gatekeeper','Little','Age Slider','Fictive','Introject','Trauma Holder','Median','Fragment','Emotional Holder','Somatic/Body','Inner Self Helper','Persecutor-Protector','Non-human/Otherkin','Animal Alter','Machine/Robot','Void Alter','Dark Alter','Crystal/Element','Demon','Angel','Gatekeeper-Protector','Sexual Alter','Observer','Animus/Anima','Unknown'];
+      return roles.map(r => `<option value="${r}" ${cur===r?'selected':''}>${r||'no role'}</option>`).join('');
+    }
+    function _statusOpts(cur) {
+      return ['Single','Bonded','Strained','Coupled','Complicated'].map(s => `<option value="${s}" ${cur===s?'selected':''}>${s}</option>`).join('');
+    }
+    function _symbolOpts(cur) {
+      const syms = [['','none'],['&','& amp'],['🐙','🐙 octo'],['☆','☆ star'],['✦','✦ spark'],['⬡','⬡ hex'],['◈','◈ gem']];
+      return syms.map(([v,l]) => `<option value="${v}" ${cur===v?'selected':''}>${l}</option>`).join('');
+    }
+    function _getAlterDisplayRole(alt) {
+      return alt.customRole || alt.role || '';
+    }
+    function _roleBadgeHTML(alt, fontSize) {
+      const role = _getAlterDisplayRole(alt);
+      if (!role) return '';
+      const sz = fontSize || '0.6em';
+      return `<span class="role-badge" style="font-size:${sz};color:${alt.color};border-color:${alt.color};background:${alt.color}15">${_esc(role)}</span>`;
+    }
+    let editingAlterIndex = null;
+    function showAltersModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      const list = document.getElementById('alters-list');
+      list.innerHTML = '';
+      const countEl = document.getElementById('alterCount');
+      if (countEl) countEl.textContent = `${alters.length} alter${alters.length !== 1 ? 's' : ''} in this system`;
+      alters.forEach((alt, i) => {
+        const unread = unreadNotifications[i] || 0;
+        const hasPw = !!(alt.password && alt.password.hash);
+        const isPersona = !!alt.isPersona;
+        const role = _getAlterDisplayRole(alt);
+        const isCurrent = i === currentAlterIndex;
+        const card = document.createElement('div');
+        card.className = 'alter-compact-card';
+        card.style.cssText = `--card-gradient:linear-gradient(135deg,${alt.color},${alt.color}44,${alt.color});background:${isCurrent ? `color-mix(in srgb, ${alt.color} 8%, #0a001f)` : '#111118'};box-shadow:${isCurrent ? `0 0 20px ${alt.color}33, inset 0 0 30px ${alt.color}08` : `0 0 8px ${alt.color}11`};`;
+        card.onclick = () => openAlterEditModal(i);
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${alt.avatar}" class="w-10 h-10 rounded-xl object-cover flex-shrink-0" style="border:2px solid ${alt.color};${alt.fronting?`box-shadow:0 0 10px ${alt.color}`:''}" onerror="this.src='data:image/svg+xml,<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 1 1\\"/>'">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                ${alt.symbol ? `<span style="color:${alt.color};font-weight:900;font-size:13px">${alt.symbol}</span>` : ''}
+                <span class="font-black text-sm leading-tight truncate" style="color:${alt.color};text-shadow:0 0 8px ${alt.color}66">${_esc(alt.name)}</span>
+                ${hasPw ? `<i class="fa fa-lock text-[9px] text-zinc-600"></i>` : ''}
+                ${role ? `<span class="role-badge" style="font-size:9px;color:${alt.color};border-color:${alt.color}66;background:${alt.color}15">${_esc(role)}</span>` : ''}
+                ${alt.fronting ? `<span class="text-[8px] font-black px-1.5 py-0.5 rounded-full" style="background:#ccff0022;color:#ccff00;border:1px solid #ccff0044">◆ FRONT</span>` : ''}
+                ${isPersona ? `<span class="gemma-badge" style="font-size:8px">ECHO</span>` : ''}
+                ${unread > 0 ? `<span class="text-[8px] font-black bg-red-500 text-white px-1.5 py-0.5 rounded-full">${unread}</span>` : ''}
+              </div>
+              <div class="text-zinc-600 text-[10px] mt-0.5 truncate">${_esc(alt.handle)}${alt.pronouns ? ` · ${_esc(alt.pronouns)}` : ''}</div>
+            </div>
+            <div class="flex items-center gap-1.5 flex-shrink-0" onclick="event.stopPropagation()">
+              ${isCurrent
+                ? `<span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black" style="background:${alt.color}22;color:${alt.color};border:1px solid ${alt.color}44">✓</span>`
+                : `<button onclick="event.stopPropagation();switchToAlter(${i})" class="w-8 h-8 rounded-lg flex items-center justify-center text-[11px]" style="background:linear-gradient(135deg,${alt.color},${alt.color}88);color:#0a001f" title="Switch"><i class="fa fa-bolt"></i></button>`
+              }
+              ${!isCurrent ? `<button onclick="event.stopPropagation();openDMWithAlter(${i})" class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#0d0d1a] border border-zinc-700 text-cyan-400 text-[11px]" title="DM"><i class="fa fa-envelope"></i></button>` : ''}
+              <button onclick="event.stopPropagation();removeAlter(${i})" class="w-8 h-8 rounded-lg flex items-center justify-center bg-[#0d0d1a] border border-red-900/50 text-red-500 text-[11px]" title="Remove"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+      if (archives.length > 0) {
+        const archiveHeader = document.createElement('div');
+        archiveHeader.className = 'text-zinc-600 text-[10px] font-bold tracking-widest mt-4 mb-2 px-1';
+        archiveHeader.textContent = 'MEMORY ARCHIVES';
+        list.appendChild(archiveHeader);
+        archives.forEach((arch, idx) => {
+          const aDiv = document.createElement('div');
+          aDiv.style.cssText = 'background:#111118;border:1.5px solid #ff00cc33;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;';
+          aDiv.innerHTML = `
+            <div class="w-10 h-10 rounded-xl bg-[#1a0030] flex items-center justify-center flex-shrink-0"><i class="fa fa-ghost text-pink-400"></i></div>
+            <div class="flex-1"><div class="font-bold text-sm text-white">${arch.name}</div><div class="text-xs text-pink-400">memory archive · departed</div></div>
+            <i class="fa fa-chevron-right text-zinc-600 text-xs"></i>
+          `;
+          aDiv.onclick = () => openMemoryArchive(idx);
+          list.appendChild(aDiv);
+        });
+      }
+      setTimeout(drawMoodGraph, 100);
+      document.getElementById('altersModal').classList.remove('hidden');
+      setTimeout(() => { const inp = document.getElementById('newAlterName'); if (inp) inp.focus(); }, 100);
+    }
+    function switchToAlter(i) {
+      currentAlterIndex = i;
+      unreadNotifications[i] = 0;
+      saveData();
+      updateComposerUI();
+      updateDMNotificationBadge();
+      closeAltersModal();
+    }
+    function openAlterEditModal(index) {
+      editingAlterIndex = index;
+      const alt = alters[index];
+      if (!alt) return;
+      const c = alt.color || '#ff00cc';
+      const modal = document.getElementById('alterEditModal');
+      const avatarWrap = document.getElementById('editAlterAvatarWrap');
+      const avatarImg = document.getElementById('editAlterAvatarImg');
+      const title = document.getElementById('editAlterTitle');
+      const subtitle = document.getElementById('editAlterSubtitle');
+      avatarImg.src = alt.avatar;
+      avatarWrap.style.borderColor = c;
+      title.innerHTML = _esc(alt.name) + ' ' + _roleBadgeHTML(alt, '10px');
+      title.style.color = c;
+      title.style.textShadow = `0 0 12px ${c}88`;
+      subtitle.textContent = alt.handle + (alt.pronouns ? ` · ${alt.pronouns}` : '');
+      const avatarInput = document.getElementById('editAlterAvatarInput');
+      avatarInput.onchange = (e) => { uploadAvatar(editingAlterIndex, e); openAlterEditModal(editingAlterIndex); };
+      const role = _getAlterDisplayRole(alt);
+      const hasPw = !!(alt.password && alt.password.hash);
+      const isPersona = !!alt.isPersona;
+      const isCurrent = index === currentAlterIndex;
+      const content = document.getElementById('alterEditContent');
+      content.innerHTML = `
+        <div class="alter-edit-section">
+          <div class="alter-edit-section-title" style="color:${c}">IDENTITY</div>
+          <div class="alter-edit-field">
+            <label>NAME</label>
+            <input type="text" value="${_esc(alt.name)}" id="editField_name" onchange="updateEditField(${index},'name',this.value)">
+          </div>
+          <div class="alter-edit-field">
+            <label>HANDLE</label>
+            <input type="text" value="${_esc(alt.handle)}" id="editField_handle" onchange="updateEditField(${index},'handle',this.value)">
+          </div>
+          <div class="alter-edit-field">
+            <label>PRONOUNS</label>
+            <input type="text" value="${_esc(alt.pronouns||'')}" placeholder="they/them, she/her, he/him…" id="editField_pronouns" onchange="updateEditField(${index},'pronouns',this.value)">
+          </div>
+          <div class="alter-edit-field">
+            <label>SYMBOL</label>
+            <select id="editField_symbol" onchange="updateEditField(${index},'symbol',this.value)">${_symbolOpts(alt.symbol||'')}</select>
+          </div>
+        </div>
+        <div class="alter-edit-section">
+          <div class="alter-edit-section-title" style="color:${c}">ROLE</div>
+          <div class="alter-edit-field">
+            <label>PREDEFINED ROLE</label>
+            <select id="editField_role" onchange="updateEditField(${index},'role',this.value);document.getElementById('editField_customRole').value=''">${_roleOpts(alt.role||'')}</select>
+          </div>
+          <div class="alter-edit-field">
+            <label>CUSTOM ROLE (overrides predefined)</label>
+            <input type="text" value="${_esc(alt.customRole||'')}" placeholder="Type a custom role…" id="editField_customRole" onchange="updateEditField(${index},'customRole',this.value)">
+          </div>
+          ${role ? `<div class="mt-2"><span class="text-[10px] text-zinc-500 mr-2">CURRENT:</span><span class="role-badge" style="font-size:11px;color:${c};border-color:${c};background:${c}15">${_esc(role)}</span></div>` : ''}
+        </div>
+        <div class="alter-edit-section">
+          <div class="alter-edit-section-title" style="color:${c}">APPEARANCE</div>
+          <div class="alter-edit-field">
+            <label>COLOR</label>
+            <div class="flex items-center gap-3">
+              <input type="color" value="${c}" id="editField_color" class="w-12 h-10 rounded-lg cursor-pointer border-0" onchange="updateEditField(${index},'color',this.value);openAlterEditModal(${index})">
+              <span class="text-xs text-zinc-500">${c}</span>
+            </div>
+          </div>
+          <div class="alter-edit-field">
+            <label>THEME</label>
+            <button onclick="openThemeModalForAlter(${index});closeAlterEditModal()" class="w-full py-3 rounded-xl text-sm font-bold bg-[#1a0033] border border-zinc-700 text-pink-400 flex items-center justify-center gap-2">
+              <i class="fa fa-palette"></i> OPEN THEME PICKER
+            </button>
+          </div>
+        </div>
+        <div class="alter-edit-section">
+          <div class="alter-edit-section-title" style="color:${c}">STATUS</div>
+          <div class="alter-edit-field">
+            <label>FRONTING</label>
+            <button onclick="toggleFronting(${index});openAlterEditModal(${index})" class="w-full py-3 rounded-xl text-sm font-black transition-all" style="${alt.fronting ? `background:${c}22;color:#ccff00;border:1.5px solid #ccff0066` : 'background:#1a0033;color:#555;border:1.5px solid #333'}">
+              ${alt.fronting ? '◆ FRONTING — TAP TO STOP' : '○ NOT FRONTING — TAP TO START'}
+            </button>
+          </div>
+          <div class="alter-edit-field">
+            <label>RELATIONSHIP STATUS</label>
+            <select id="editField_relStatus" onchange="updateEditField(${index},'relationshipStatus',this.value)">${_statusOpts(alt.relationshipStatus||'Single')}</select>
+          </div>
+          <div class="alter-edit-field">
+            <label>SYSTEM STATUS</label>
+            <div class="flex items-center gap-2 flex-wrap mt-1">
+              ${isPersona ? `<span class="gemma-badge">ECHO PERSONA</span>` : `<span class="text-xs text-zinc-500">Standard alter</span>`}
+            </div>
+          </div>
+        </div>
+        <div class="alter-edit-section">
+          <div class="alter-edit-section-title" style="color:${c}">SECURITY</div>
+          <div class="alter-edit-field">
+            <label>PASSWORD LOCK</label>
+            <button onclick="setAlterPassword(${index})" class="w-full py-3 rounded-xl text-sm font-bold bg-[#1a0033] border border-zinc-700 text-yellow-400 flex items-center justify-center gap-2">
+              ${hasPw ? '<i class="fa fa-lock"></i> CHANGE PASSWORD' : '<i class="fa fa-lock-open"></i> SET PASSWORD'}
+            </button>
+          </div>
+        </div>
+        ${!isPersona ? `
+        <div class="alter-edit-section" style="border:1px solid #333">
+          <div class="alter-edit-section-title" style="color:#a855f7">ECHO</div>
+          <button onclick="createEchoClone(${index});closeAlterEditModal()" class="w-full py-3 rounded-xl text-sm font-bold bg-[#1a0033] border border-purple-900 text-purple-400 flex items-center justify-center gap-2">
+            <i class="fa fa-clone"></i> CREATE ECHO CLONE
+          </button>
+        </div>` : ''}
+      `;
+      const actions = document.getElementById('alterEditActions');
+      actions.innerHTML = `
+        <button onclick="saveAlterEdits(${index})" class="px-5 py-3 rounded-xl text-sm font-black text-[#0a001f] flex items-center justify-center gap-1" style="background:linear-gradient(to right,#00ffff,#00cc88)">
+          <i class="fa fa-check"></i> SAVE
+        </button>
+        ${isCurrent
+          ? `<span class="flex-1 text-center py-3 rounded-xl text-sm font-black" style="background:${c}22;color:${c};border:1.5px solid ${c}44">✓ ACTIVE ALTER</span>`
+          : `<button onclick="switchToAlter(${index});closeAlterEditModal()" class="flex-1 py-3 rounded-xl text-sm font-black text-[#0a001f]" style="background:linear-gradient(to right,${c},${c}99)">
+              <i class="fa fa-bolt mr-1"></i>SWITCH
+            </button>`
+        }
+        <button onclick="removeAlter(${index});closeAlterEditModal()" class="px-5 py-3 rounded-xl text-sm font-bold bg-red-900/30 border border-red-900 text-red-400">
+          <i class="fa fa-trash"></i>
+        </button>
+      `;
+      modal.classList.remove('hidden');
+    }
+    function closeAlterEditModal() {
+      document.getElementById('alterEditModal').classList.add('hidden');
+      editingAlterIndex = null;
+      if (!document.getElementById('altersModal').classList.contains('hidden')) {
+        showAltersModal();
+      }
+    }
+    function saveAlterEdits(index) {
+      if (!alters[index]) return;
+      saveData();
+      if (index === currentAlterIndex) {
+        updateComposerUI();
+        updateHeaderAlter();
+      }
+      renderFeed();
+      closeAlterEditModal();
+      showAltersModal();
+    }
+    function updateEditField(index, field, value) {
+      if (!alters[index]) return;
+      if (field === 'name') {
+        alters[index].name = value.trim() || alters[index].name;
+      } else if (field === 'handle') {
+        let h = value.trim();
+        if (h && !h.startsWith('@')) h = '@' + h.replace(/\s+/g, '');
+        alters[index].handle = h || alters[index].handle;
+      } else if (field === 'pronouns') {
+        alters[index].pronouns = value.trim();
+      } else if (field === 'symbol') {
+        alters[index].symbol = value;
+      } else if (field === 'role') {
+        alters[index].role = value;
+        if (value) alters[index].customRole = '';
+      } else if (field === 'customRole') {
+        alters[index].customRole = value.trim();
+      } else if (field === 'color') {
+        alters[index].color = value;
+      } else if (field === 'relationshipStatus') {
+        alters[index].relationshipStatus = value;
+      }
+      saveData();
+      if (index === currentAlterIndex) updateComposerUI();
+      const title = document.getElementById('editAlterTitle');
+      const subtitle = document.getElementById('editAlterSubtitle');
+      if (title) { title.innerHTML = _esc(alters[index].name) + ' ' + _roleBadgeHTML(alters[index], '10px'); title.style.color = alters[index].color; }
+      if (subtitle) subtitle.textContent = alters[index].handle + (alters[index].pronouns ? ` · ${alters[index].pronouns}` : '');
+    }
+    function openDMWithAlter(targetIndex) {
+      if (targetIndex === currentAlterIndex) return;
+      closeAltersModal();
+      currentDMTarget = targetIndex;
+      const alter = alters[targetIndex];
+      const header = document.getElementById('dmChatHeader');
+      if (header) {
+        const dmRole = alter ? _getAlterDisplayRole(alter) : '';
+        header.innerHTML = _esc(alter ? alter.name : 'DM') + (dmRole ? ` <span class="role-badge" style="font-size:9px;color:${alter.color};border-color:${alter.color};background:${alter.color}15">${_esc(dmRole)}</span>` : '');
+      }
+      unreadNotifications[targetIndex] = 0;
+      saveData();
+      renderDMChat();
+      updateDMNotificationBadge();
+      document.getElementById('dmChatModal').classList.remove('hidden');
+      setTimeout(() => { const inp = document.getElementById('dmInput'); if (inp) inp.focus(); }, 60);
+    }
+    function openThemeModalForAlter(idx) {
+      const previousAlterIndex = currentAlterIndex;
+      currentAlterIndex = idx;
+      closeAltersModal();
+      openThemeModal();
+      window._themeModalPreviousAlter = previousAlterIndex;
+    }
+    function updateRelationshipStatus(index, newStatus) {
+      alters[index].relationshipStatus = newStatus;
+      saveData();
+    }
+    function updateAlterPronouns(index, val) {
+      if (!alters[index]) return;
+      alters[index].pronouns = val.trim();
+      saveData();
+      if (index === currentAlterIndex) updateComposerUI();
+    }
+    function updateAlterRole(index, val) {
+      if (!alters[index]) return;
+      alters[index].role = val;
+      saveData();
+      if (index === currentAlterIndex) updateComposerUI();
+    }
+    function toggleFronting(index) {
+      if (!alters[index]) return;
+      alters[index].fronting = !alters[index].fronting;
+      saveData();
+      if (index === currentAlterIndex) updateComposerUI();
+    }
+    function updateAlterSymbol(index, symbol) {
+      alters[index].symbol = symbol;
+      saveData();
+      if (index === currentAlterIndex) {
+        const symbolEl = document.getElementById('composer-symbol');
+        if (symbolEl) symbolEl.textContent = symbol;
+      }
+    }
+    function closeAltersModal() {
+      document.getElementById('altersModal').classList.add('hidden');
+      if (returnToModal === 'screamDetailModal') {
+        returnToModal = null;
+        document.getElementById('screamDetailModal').classList.remove('hidden');
+      } else if (returnToModal === 'calendarModal') {
+        returnToModal = null;
+        document.getElementById('calendarModal').classList.remove('hidden');
+      } else if (returnToModal === 'dmChatModal') {
+        returnToModal = null;
+        document.getElementById('dmChatModal').classList.remove('hidden');
+      }
+    }
+    function _themeColor(prop, fallback) {
+      return getComputedStyle(document.documentElement).getPropertyValue(prop).trim() || fallback;
+    }
+    const moodScale = { '🤩': 100, '😄': 85, '🙂': 70, '😐': 55, '🌑': 40, '😔': 35, '😢': 25, '😰': 15, '😡': 10 };
+    function drawMoodGraph() {
+      const canvas = document.getElementById('moodGraph');
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const displayW = canvas.offsetWidth || 320;
+      const displayH = canvas.offsetHeight || 120;
+      canvas.width = displayW * dpr;
+      canvas.height = displayH * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const W = displayW, H = displayH;
+      ctx.clearRect(0, 0, W, H);
+      const cyan = _themeColor('--neon-cyan', '#00ffff');
+      const lime = _themeColor('--neon-lime', '#ccff00');
+      const alter = alters[currentAlterIndex];
+      const color = alter && alter.color ? alter.color : lime;
+      const tag = document.getElementById('moodGraphAlterTag');
+      if (tag) tag.textContent = alter ? alter.name.toUpperCase() : '';
+      const today = new Date();
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().slice(0, 10);
+        const entry = moods.filter(m => m.alterIndex === currentAlterIndex && m.date === dateStr).pop();
+        days.push({ dateStr, entry });
+      }
+      const pad = 16;
+      const barW = Math.floor((W - pad * 2) / 7) - 4;
+      const labelH = Math.max(10, H * 0.1);
+      const emojiH = Math.max(14, H * 0.16);
+      const baseY = H - labelH - 2;
+      const maxBarH = baseY - emojiH - 4;
+      ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.shadowColor = color; ctx.shadowBlur = 6; ctx.globalAlpha = 0.25;
+      [0.25,0.5,0.75].forEach(frac => {
+        const gy = baseY - frac * maxBarH;
+        ctx.beginPath(); ctx.moveTo(pad, gy); ctx.lineTo(W - pad, gy); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = cyan; ctx.lineWidth = 1.5; ctx.shadowColor = cyan; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.moveTo(pad, baseY); ctx.lineTo(W - pad, baseY); ctx.stroke();
+      days.forEach((day, i) => {
+        const x = pad + i * (barW + 4);
+        const level = day.entry ? (moodScale[day.entry.mood] || 50) : 8;
+        const barH = Math.max(4, (level / 100) * maxBarH);
+        ctx.shadowBlur = 0;
+        if (day.entry) {
+          const grad = ctx.createLinearGradient(x, baseY - barH, x, baseY);
+          grad.addColorStop(0, color);
+          grad.addColorStop(1, color + '44');
+          ctx.fillStyle = grad;
+          ctx.shadowColor = color; ctx.shadowBlur = 18;
+        } else {
+          ctx.fillStyle = '#2a2a3a'; ctx.shadowBlur = 0;
+        }
+        ctx.beginPath();
+        ctx.roundRect(x, baseY - barH, barW, barH, Math.min(barW * 0.3, 6));
+        ctx.fill();
+        if (day.entry) {
+          ctx.font = `${Math.round(Math.min(barW * 0.9, emojiH))}px serif`;
+          ctx.textAlign = 'center'; ctx.shadowBlur = 0; ctx.fillStyle = '#fff';
+          ctx.fillText(day.entry.mood, x + barW / 2, baseY - barH - 2);
+        }
+        ctx.font = `bold ${Math.round(labelH * 0.85)}px system-ui`;
+        ctx.fillStyle = day.entry ? color : '#555';
+        ctx.shadowBlur = 0;
+        const label = new Date(day.dateStr + 'T12:00:00').toLocaleDateString(undefined, {weekday:'narrow'});
+        ctx.fillText(label, x + barW / 2, H - 1);
+      });
+    }
+    function uploadAvatar(index, e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const size = 128;
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const ratio = Math.max(size / img.width, size / img.height);
+          const x = (size - img.width * ratio) / 2;
+          const y = (size - img.height * ratio) / 2;
+          ctx.drawImage(img, x, y, img.width * ratio, img.height * ratio);
+          const base64 = canvas.toDataURL('image/jpeg', 0.75);
+          alters[index].avatar = base64;
+          saveData();
+          showAltersModal();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    function removeAlter(index) {
+      if (alters.length <= 1) return alert("You need at least one alter");
+      if (confirm("Let this alter go? This cannot be undone.")) {
+        alters.splice(index, 1);
+        if (currentAlterIndex >= alters.length) currentAlterIndex = 0;
+        editingAlterIndex = null;
+        saveData();
+        document.getElementById('alterEditModal').classList.add('hidden');
+        showAltersModal();
+      }
+    }
+    function addNewAlter() {
+      const name = document.getElementById('newAlterName').value.trim();
+      if (!name) {
+        alert("Alter name cannot be empty");
+        return;
+      }
+      const exists = alters.some(a => a.name.toLowerCase() === name.toLowerCase());
+      if (exists) {
+        alert("An alter with this name already exists");
+        return;
+      }
+      const pal = _randomPalette();
+      alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: pal.color, theme: pal.theme, symbol: '&', password: null, relationshipStatus: 'Single', pronouns: '', role: '', fronting: false });
+      saveData();
+      document.getElementById('newAlterName').value = '';
+      showAltersModal();
+    }
+    function updateAlterHandle(index, newHandle) {
+      if (!newHandle) return;
+      if (!newHandle.startsWith('@')) newHandle = '@' + newHandle.trim().replace(/\s+/g, '');
+      alters[index].handle = newHandle;
+      saveData();
+      showAltersModal();
+    }
+    function createEchoClone(baseIndex) {
+      if (!ensureCurrentAlter()) return;
+      const base = alters[baseIndex];
+      const cloneName = base.name + " (Gemma Echo)";
+      const exists = alters.some(a => a.name === cloneName);
+      if (exists) { alert("Gemma Echo clone already exists"); return; }
+      const clone = { id: Date.now(), name: cloneName, handle: base.handle + "-gemma", avatar: base.avatar, color: base.color, theme: base.theme, password: null, isPersona: true, basePersonality: baseIndex, relationshipStatus: 'Single', pronouns: base.pronouns || '', role: base.role || '', fronting: false };
+      alters.push(clone);
+      saveData();
+      showAltersModal();
+    }
+    function setAlterPassword(index) {
+      if (!ensureCurrentAlter()) return;
+      currentPasswordAlter = index;
+      isSettingPassword = true;
+      pendingPasswordCallback = (success) => { if (success) showAltersModal(); };
+      document.getElementById('passwordModalTitle').textContent = 'SET PASSWORD';
+      document.getElementById('passwordInput').placeholder = 'NEW PASSWORD';
+      document.getElementById('passwordConfirm').classList.remove('hidden');
+      document.getElementById('passwordModal').classList.remove('hidden');
+      document.getElementById('passwordInput').focus();
+    }
+    async function checkPassword(onSuccess) {
+      const alter = alters[currentAlterIndex];
+      if (!alter || !alter.password || !alter.password.hash) { onSuccess(); return; }
+      currentPasswordAlter = currentAlterIndex;
+      isSettingPassword = false;
+      pendingPasswordCallback = onSuccess;
+      document.getElementById('passwordModalTitle').textContent = 'ENTER PASSWORD';
+      document.getElementById('passwordInput').placeholder = 'ENTER PASSWORD';
+      document.getElementById('passwordConfirm').classList.add('hidden');
+      document.getElementById('passwordModal').classList.remove('hidden');
+      document.getElementById('passwordInput').focus();
+    }
+    async function submitPassword() {
+      const input = document.getElementById('passwordInput');
+      const confirmInput = document.getElementById('passwordConfirm');
+      const pw = input.value.trim();
+      const errorEl = document.getElementById('passwordError');
+      errorEl.classList.add('hidden');
+      if (!pw) { errorEl.textContent = 'Password cannot be empty'; errorEl.classList.remove('hidden'); return; }
+      const alter = alters[currentPasswordAlter];
+      if (isSettingPassword) {
+        const confirmPw = confirmInput.value.trim();
+        if (pw.length < 4) { errorEl.textContent = 'Minimum 4 characters'; errorEl.classList.remove('hidden'); return; }
+        if (pw !== confirmPw) { errorEl.textContent = 'Passwords do not match'; errorEl.classList.remove('hidden'); return; }
+        const salt = alter.password && alter.password.salt ? alter.password.salt : generateSalt();
+        const hash = await hashPassword(pw, salt);
+        alter.password = { hash, salt };
+        saveData();
+        cancelPassword();
+        if (pendingPasswordCallback) pendingPasswordCallback(true);
+      } else {
+        if (!alter.password || !alter.password.salt) { cancelPassword(); return; }
+        const enteredHash = await hashPassword(pw, alter.password.salt);
+        if (enteredHash === alter.password.hash) {
+          cancelPassword();
+          if (pendingPasswordCallback) pendingPasswordCallback();
+        } else {
+          errorEl.textContent = 'Incorrect password';
+          errorEl.classList.remove('hidden');
+        }
+      }
+    }
+    function cancelPassword() {
+      document.getElementById('passwordModal').classList.add('hidden');
+      document.getElementById('passwordError').classList.add('hidden');
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordConfirm').value = '';
+      document.getElementById('passwordConfirm').classList.add('hidden');
+      pendingPasswordCallback = null;
+      isSettingPassword = false;
+    }
+    function togglePasswordVisibility() {
+      const inputs = [document.getElementById('passwordInput'), document.getElementById('passwordConfirm')];
+      inputs.forEach(input => { if (input) input.type = input.type === 'password' ? 'text' : 'password'; });
+    }
+    function viewMedia(url) {
+      const container = document.getElementById('mediaContainer');
+      const ext = url.toLowerCase();
+      if (ext.endsWith('.mp4') || ext.endsWith('.webm')) container.innerHTML = `<video id="modalMedia" src="${url}" controls autoplay></video>`;
+      else container.innerHTML = `<img id="modalMedia" src="${url}" onclick="closeMediaModal()">`;
+      document.getElementById('mediaModal').classList.remove('hidden');
+    }
+    function closeMediaModal() { document.getElementById('mediaModal').classList.add('hidden'); }
+    function openScreamDetail(id) {
+      currentDetailPostId = id;
+      const post = screams.find(s => s.id === id);
+      if (!post) return;
+      const detailPost = document.getElementById('detailPost');
+      const alter = alters[post.alterIndex] || {name: "Unknown", handle: "@voidanon", avatar: "https://picsum.photos/id/64/128", color: "#c026d3"};
+      let contentHTML = `<p class="text-xl neon-cyan">${post.text}</p>`;
+      if (post.media) {
+        const lower = post.media.toLowerCase();
+        if (lower.endsWith('.mp4') || lower.endsWith('.webm')) contentHTML += `<div class="image-wrapper mt-4"><video src="${post.media}" class="post-video" controls></video></div>`;
+        else if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) contentHTML += `<div class="image-wrapper mt-4"><img src="${post.media}" class="post-image" onclick="viewMedia('${post.media}')"></div>`;
+        else contentHTML += `<div class="mt-4 text-cyan-400 underline"><a href="${post.media}" target="_blank" class="neon-cyan">${post.media}</a></div>`;
+      }
+      const isPinned = post.pinnedBy && post.pinnedBy.includes(currentAlterIndex);
+      detailPost.innerHTML = `
+        <div class="flex gap-3 items-center mb-3">
+          <img src="${alter.avatar}" class="w-9 h-9 rounded-2xl border-2" style="border-color:${alter.color}">
+          <div>
+            <div class="alter-nameplate font-bold" style="color:${alter.color};text-shadow:0 0 8px ${alter.color}">
+              ${alter.symbol ? `<span class="alter-symbol">${alter.symbol}</span>` : ''}
+              <span>${_esc(alter.name)}</span>
+              ${_roleBadgeHTML(alter)}
+              ${alter.fronting ? `<span class="fronting-badge">◆ FRONT</span>` : ''}
+            </div>
+            <div class="flex items-center gap-2 text-xs" style="color:var(--neon-cyan)">
+              <span>${_esc(alter.handle)}</span>
+              ${alter.pronouns ? `<span class="alter-pronouns">${_esc(alter.pronouns)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        ${contentHTML}
+        <div class="flex justify-between items-center mt-6 text-sm">
+          <div class="flex gap-6">
+            <button onclick="vote(${id},1);event.stopImmediatePropagation()" class="flex items-center gap-1 neon-cyan"><i class="fa fa-arrow-up"></i> <span>${post.votes ? post.votes.up : 0}</span></button>
+            <button onclick="vote(${id},-1);event.stopImmediatePropagation()" class="flex items-center gap-1 neon-pink"><i class="fa fa-arrow-down"></i> <span>${post.votes ? post.votes.down : 0}</span></button>
+            <button onclick="togglePin(${id});event.stopImmediatePropagation()" class="flex items-center gap-1 ${isPinned ? 'neon-lime' : 'text-zinc-400'}"><i class="fa fa-thumbtack"></i></button>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-zinc-500">
+            <span>${post.mood || '🌑'}</span>
+            <span>${new Date(post.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+          </div>
+        </div>
+      `;
+      renderDetailComments();
+      document.getElementById('screamDetailModal').classList.remove('hidden');
+    }
+    function closeScreamDetail() {
+      document.getElementById('screamDetailModal').classList.add('hidden');
+    }
+    function togglePin(id) {
+      const post = screams.find(s => s.id === id);
+      if (!post) return;
+      if (!post.pinnedBy) post.pinnedBy = [];
+      const idx = post.pinnedBy.indexOf(currentAlterIndex);
+      if (idx > -1) post.pinnedBy.splice(idx, 1);
+      else post.pinnedBy.push(currentAlterIndex);
+      saveData();
+      renderFeed();
+      openScreamDetail(id);
+    }
+    function renderDetailComments() {
+      const container = document.getElementById('detailComments');
+      container.innerHTML = '';
+      const post = screams.find(s => s.id === currentDetailPostId);
+      if (!post || !post.comments) return;
+      post.comments.forEach((c, idx) => {
+        const commentDiv = document.createElement('div');
+        commentDiv.className = 'flex gap-4';
+        commentDiv.innerHTML = `
+          <div class="text-purple-400 text-xs">@alter</div>
+          <div class="flex-1 text-sm neon-cyan">${c.text}</div>
+          <button onclick="openReplyModal(${idx});event.stopImmediatePropagation()" class="text-xs neon-cyan">REPLY</button>
+        `;
+        container.appendChild(commentDiv);
+        if (c.replies && c.replies.length) {
+          const repliesDiv = document.createElement('div');
+          repliesDiv.className = 'nested-reply space-y-3';
+          c.replies.forEach(r => {
+            const rDiv = document.createElement('div');
+            rDiv.className = 'flex gap-4 text-sm';
+            rDiv.innerHTML = `<div class="text-purple-400 text-xs">@alter</div><div class="flex-1 neon-cyan">${r.text}</div>`;
+            repliesDiv.appendChild(rDiv);
+          });
+          container.appendChild(repliesDiv);
+        }
+      });
+    }
+    function openReplyModal(commentIdx = null) {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      closeScreamDetail();
+      document.getElementById('replyModal').classList.remove('hidden');
+      window.replyTargetComment = commentIdx;
+      setTimeout(() => { document.getElementById('replyText').focus(); }, 100);
+    }
+    function closeReplyModal() {
+      document.getElementById('replyModal').classList.add('hidden');
+    }
+    function postReply() {
+      const text = document.getElementById('replyText').value.trim();
+      if (!text) return;
+      const post = screams.find(s => s.id === currentDetailPostId);
+      if (!post.comments) post.comments = [];
+      if (window.replyTargetComment !== null) {
+        if (!post.comments[window.replyTargetComment].replies) post.comments[window.replyTargetComment].replies = [];
+        post.comments[window.replyTargetComment].replies.push({ text });
+      } else {
+        post.comments.push({ text, replies: [] });
+      }
+      saveData();
+      closeReplyModal();
+      openScreamDetail(currentDetailPostId);
+      renderFeed();
+    }
+    function toggleHubMenu() {
+      if (!ensureCurrentAlter()) return;
+      const menu = document.getElementById('hubMenu');
+      const btn = document.getElementById('hubBtn');
+      btn.classList.toggle('expanded');
+      menu.classList.toggle('show');
+      updateDMNotificationBadge();
+    }
+    function openDMModal() {
+      if (!ensureCurrentAlter()) return;
+      toggleHubMenu();
+      checkPassword(() => {
+        const list = document.getElementById('dmAltersList');
+        list.innerHTML = '';
+        let hasAny = false;
+        alters.forEach((alt, i) => {
+          if (i === currentAlterIndex) return;
+          hasAny = true;
+          const unread = unreadNotifications[i] || 0;
+          const btn = document.createElement('div');
+          btn.style.cssText = `background:${unread > 0 ? `color-mix(in srgb, ${alt.color} 8%, #111118)` : '#111118'};border:1.5px solid ${unread > 0 ? alt.color + '88' : '#1f1f2e'};border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.15s;${unread > 0 ? `box-shadow:0 0 16px ${alt.color}44` : ''}`;
+          btn.innerHTML = `
+            <img src="${alt.avatar}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0" style="border:2px solid ${alt.color}" onerror="this.style.display='none'">
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-sm" style="color:${alt.color}">${_esc(alt.name)} ${_roleBadgeHTML(alt, '8px')}</div>
+              <div class="text-zinc-500 text-xs">${_esc(alt.handle)}${alt.pronouns ? ' · ' + _esc(alt.pronouns) : ''}</div>
+            </div>
+            ${unread > 0 ? `<div class="text-xs font-black px-3 py-1.5 rounded-full flex-shrink-0" style="background:${alt.color};color:#0a001f">${unread} NEW</div>` : '<i class="fa fa-chevron-right text-zinc-700 text-xs"></i>'}
+          `;
+          btn.onclick = () => openDMChat(i);
+          list.appendChild(btn);
+        });
+        if (!hasAny) {
+          list.innerHTML = '<div class="text-center text-zinc-600 text-sm py-12">No other alters yet.<br>Add some in MY SYSTEM.</div>';
+        }
+        document.getElementById('dmHubModal').classList.remove('hidden');
+      });
+    }
+    function closeDMHub() {
+      document.getElementById('dmHubModal').classList.add('hidden');
+    }
+    function openDMChat(targetIndex) {
+      if (!ensureCurrentAlter()) return;
+      closeDMHub();
+      currentDMTarget = targetIndex;
+      const targetAlter = alters[targetIndex];
+      const header = document.getElementById('dmChatHeader');
+      const subtitle = document.getElementById('dmChatSubtitle');
+      const avatarImg = document.getElementById('dmChatAvatarImg');
+      const avatarWrap = document.getElementById('dmChatAvatar');
+      if (header) { const dmR = _getAlterDisplayRole(targetAlter); header.innerHTML = _esc(targetAlter.name) + (dmR ? ` <span class="role-badge" style="font-size:9px;color:${targetAlter.color};border-color:${targetAlter.color};background:${targetAlter.color}15">${_esc(dmR)}</span>` : ''); header.style.color = targetAlter.color; header.style.textShadow = `0 0 12px ${targetAlter.color}88`; }
+      if (subtitle) subtitle.textContent = `${targetAlter.handle}${targetAlter.pronouns ? ' · ' + targetAlter.pronouns : ''}`;
+      if (avatarImg) avatarImg.src = targetAlter.avatar || '';
+      if (avatarWrap) avatarWrap.style.borderColor = targetAlter.color;
+      unreadNotifications[targetIndex] = 0;
+      const key = dmKey(currentAlterIndex, targetIndex);
+      const selfId = alters[currentAlterIndex] ? alters[currentAlterIndex].id : currentAlterIndex;
+      if (dmMessages[key]) {
+        dmMessages[key].forEach(m => { if (m.from !== selfId && m.from !== currentAlterIndex) m.read = true; });
+      }
+      saveData();
+      renderDMChat();
+      updateDMNotificationBadge();
+      document.getElementById('dmChatModal').classList.remove('hidden');
+      setTimeout(() => {
+        const container = document.getElementById('dmMessages');
+        if (container) container.scrollTop = container.scrollHeight;
+        document.getElementById('dmInput').focus();
+      }, 100);
+    }
+    function closeDMChat() {
+      document.getElementById('dmChatModal').classList.add('hidden');
+    }
+    function dmKey(indexA, indexB) {
+      const idA = alters[indexA] ? alters[indexA].id : indexA;
+      const idB = alters[indexB] ? alters[indexB].id : indexB;
+      return `${Math.min(idA, idB)}-${Math.max(idA, idB)}`;
+    }
+    function findAlterById(id) {
+      return alters.find(a => a.id === id) || alters[id] || null;
+    }
+    function renderDMChat() {
+      if (!ensureCurrentAlter()) return;
+      const container = document.getElementById('dmMessages');
+      container.innerHTML = '';
+      const a = currentAlterIndex;
+      const b = currentDMTarget;
+      const key = dmKey(a, b);
+      const msgs = dmMessages[key] || [];
+      const selfId = alters[a] ? alters[a].id : a;
+      msgs.forEach(m => {
+        const sender = findAlterById(m.from);
+        const senderColor = sender ? sender.color : '#00ffff';
+        const isSelf = m.from === selfId || m.from === a;
+        const senderName = isSelf ? '' : `from ${sender ? sender.name : 'alter'}: `;
+        const div = document.createElement('div');
+        div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} group`;
+        div.innerHTML = `
+          <div class="max-w-[70%] p-3 rounded-3xl transition-all" style="background:${isSelf ? senderColor : '#3f3f46'}; color:${isSelf ? '#0a001f' : '#fff'}; box-shadow: ${isSelf ? 'none' : '0 0 15px ' + senderColor}">
+            <span class="text-[10px] opacity-70">${senderName}</span>${m.text}
+            ${isSelf && m.read ? `<span class="text-xs block text-right opacity-60">✓✓ read</span>` : ''}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+      if (alters[b] && alters[b].isPersona) {
+        const typing = document.createElement('div');
+        typing.id = 'dmTyping';
+        typing.className = 'text-xs neon-lime flex justify-start mt-2 animate-pulse';
+        typing.style.color = alters[b].color;
+        typing.innerHTML = `alter is typing...`;
+        container.appendChild(typing);
+        setTimeout(() => typing.remove(), 1500);
+      }
+      setTimeout(() => { container.scrollTop = container.scrollHeight; }, 30);
+    }
+    async function sendDM() {
+      if (!ensureCurrentAlter()) return;
+      const input = document.getElementById('dmInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      const a = currentAlterIndex;
+      const b = currentDMTarget;
+      const key = dmKey(a, b);
+      if (!dmMessages[key]) dmMessages[key] = [];
+      const fromId = alters[a] ? alters[a].id : a;
+      const salt = String(fromId);
+      const sealed = btoa(unescape(encodeURIComponent(text + salt)));
+      dmMessages[key].push({ from: fromId, text, sealed, time: Date.now(), read: false });
+      if (!unreadNotifications[b]) unreadNotifications[b] = 0;
+      unreadNotifications[b]++;
+      saveData();
+      renderDMChat();
+      updateDMNotificationBadge();
+      setTimeout(() => { const inp = document.getElementById('dmInput'); if (inp) inp.focus(); }, 60);
+      const target = alters[b];
+      if (target && target.isPersona) {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'text-xs neon-lime flex justify-center';
+        loadingDiv.innerHTML = alters[b] && alters[b].name === 'Internal Counselor' ? '✦ counselor is composing...' : 'echo thinking...';
+        document.getElementById('dmMessages').appendChild(loadingDiv);
+        const isCounselorDM = alters[b] && alters[b].name === 'Internal Counselor';
+        const replyText = await generateWithGemma(b, text, isCounselorDM, null);
+        loadingDiv.remove();
+        if (!dmMessages[key]) dmMessages[key] = [];
+        const replyFromId = alters[b] ? alters[b].id : b;
+        const replySalt = String(replyFromId);
+        dmMessages[key].push({ from: replyFromId, text: replyText, sealed: btoa(unescape(encodeURIComponent(replyText + replySalt))), time: Date.now(), read: true });
+        saveData();
+        renderDMChat();
+      }
+    }
+    function updateDMNotificationBadge() {
+      const total = Object.values(unreadNotifications).reduce((sum, n) => sum + (n || 0), 0);
+      const badge = document.getElementById('dmBadge');
+      if (!badge) return;
+      if (total > 0) {
+        badge.textContent = total > 99 ? '99+' : total;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+    // COUNSELOR DM (ethical + couples support)
+    async function openCounselorDM() {
+      if (!ensureCurrentAlter()) return;
+      let counselorIndex = alters.findIndex(a => a.name === "Internal Counselor");
+      if (counselorIndex === -1) {
+        const base = alters[currentAlterIndex];
+        const counselor = {
+          id: Date.now(),
+          name: "Internal Counselor",
+          handle: "@counsel",
+          avatar: base.avatar,
+          color: "#00ff88",
+          theme: base.theme,
+          password: null,
+          isPersona: true,
+          basePersonality: currentAlterIndex,
+          relationshipStatus: 'Single',
+          pronouns: 'they/them',
+          role: '',
+          fronting: false
+        };
+        alters.push(counselor);
+        counselorIndex = alters.length - 1;
+        saveData();
+      }
+      // For couples counseling, allow quick partner selection if relationshipStatus suggests one
+      const currentStatus = alters[currentAlterIndex].relationshipStatus || 'Single';
+      let partnerIndex = null;
+      if (currentStatus.includes('Coupled') || currentStatus.includes('Bonded')) {
+        const partnerName = currentStatus.split('with ')[1];
+        partnerIndex = alters.findIndex(a => a.name === partnerName);
+      }
+      currentDMTarget = counselorIndex;
+      const counselorAlter = alters[counselorIndex];
+      const header = document.getElementById('dmChatHeader');
+      const subtitle = document.getElementById('dmChatSubtitle');
+      const avatarImg = document.getElementById('dmChatAvatarImg');
+      const avatarWrap = document.getElementById('dmChatAvatar');
+      if (header) { header.textContent = partnerIndex !== null ? 'Couples Counseling' : 'Internal Counselor'; header.style.color = '#00ff88'; header.style.textShadow = '0 0 12px #00ff8888'; }
+      if (subtitle) subtitle.textContent = partnerIndex !== null ? `${alters[currentAlterIndex].name} & ${alters[partnerIndex].name}` : 'they/them · not a licensed therapist';
+      if (avatarImg) avatarImg.src = counselorAlter.avatar || '';
+      if (avatarWrap) avatarWrap.style.borderColor = '#00ff88';
+      unreadNotifications[counselorIndex] = 0;
+      saveData();
+      renderDMChat();
+      updateDMNotificationBadge();
+      document.getElementById('dmChatModal').classList.remove('hidden');
+      setTimeout(() => { document.getElementById('dmInput').focus(); }, 100);
+    }
+    function toggleCalendarMode() {
+      calendarMode = calendarMode === 'alter' ? 'system' : 'alter';
+      const btn = document.getElementById('calendarModeBtn');
+      btn.textContent = calendarMode === 'alter' ? 'ALTER MODE' : 'SYSTEM MODE';
+      drawCalendarMoodGraph();
+    }
+    function openCalendarModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      checkPassword(() => {
+        calendarMode = 'alter';
+        document.getElementById('calendarModeBtn').textContent = 'ALTER MODE';
+        renderCalendar();
+        drawCalendarMoodGraph();
+        document.getElementById('calendarModal').classList.remove('hidden');
+      });
+    }
+    function closeCalendarModal() {
+      document.getElementById('calendarModal').classList.add('hidden');
+    }
+    function drawCalendarMoodGraph() {
+      const canvas = document.getElementById('calendarMoodGraph');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      const pink = _themeColor('--neon-pink', '#ff00cc');
+      const numAlters = calendarMode === 'system' ? Math.min(alters.length, 5) : 1;
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const colors = calendarMode === 'system'
+        ? alters.slice(0, 5).map(a => a.color || pink)
+        : [alters[currentAlterIndex] ? alters[currentAlterIndex].color || pink : pink];
+      const mm = String(currentMonth + 1).padStart(2, '0');
+      for (let a = 0; a < numAlters; a++) {
+        const alterIndex = calendarMode === 'system' ? a : currentAlterIndex;
+        const color = colors[a % colors.length];
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        let started = false;
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dd = String(d).padStart(2, '0');
+          const dateStr = `${currentYear}-${mm}-${dd}`;
+          const entry = moods.filter(m => m.alterIndex === alterIndex && m.date === dateStr).pop();
+          const x = 10 + ((d - 1) / (daysInMonth - 1 || 1)) * (W - 20);
+          const level = entry ? (moodScale[entry.mood] || 50) : null;
+          const y = level !== null ? H - 8 - (level / 100) * (H - 18) : H - 10;
+          if (!started || level === null) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+      const legend = document.getElementById('moodLegend');
+      legend.innerHTML = calendarMode === 'system'
+        ? alters.slice(0, 5).map((alt, i) => `<span style="color:${colors[i]}">● ${alt.name}</span>`).join(' ')
+        : `<span style="color:${colors[0]}">● ${alters[currentAlterIndex] ? alters[currentAlterIndex].name : 'Current'}</span>`;
+    }
+    function renderCalendar() {
+      if (!ensureCurrentAlter()) return;
+      const monthNames = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+      document.getElementById('calendarTitle').textContent = `${monthNames[currentMonth]} ${currentYear}`;
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const alter = alters[currentAlterIndex];
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day text-white flex flex-col items-center justify-center';
+        const mm = String(currentMonth + 1).padStart(2,'0');
+        const dd = String(d).padStart(2,'0');
+        const dateStr = `${currentYear}-${mm}-${dd}`;
+        const dayMood = moods.find(m => m.date === dateStr && m.alterIndex === currentAlterIndex);
+        if (dayMood) {
+          dayDiv.classList.add('has-mood');
+          if (alter) dayDiv.style.boxShadow = `0 0 12px ${alter.color}`;
+          dayDiv.innerHTML = `<div class="text-2xl">${dayMood.mood}</div><div class="text-[10px] mt-1">${d}</div>`;
+        } else {
+          dayDiv.textContent = d;
+        }
+        dayDiv.onclick = () => pickMoodForDay(dateStr);
+        grid.appendChild(dayDiv);
+      }
+      drawCalendarMoodGraph();
+    }
+    function pickMoodForDay(dateStr) {
+      const moodsList = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
+      const chosen = moodsList[Math.floor(Math.random() * moodsList.length)];
+      const idx = moods.findIndex(m => m.date === dateStr && m.alterIndex === currentAlterIndex);
+      if (idx >= 0) moods[idx].mood = chosen;
+      else moods.push({ date: dateStr, alterIndex: currentAlterIndex, mood: chosen });
+      saveData();
+      renderCalendar();
+    }
+    function prevMonth() {
+      if (!ensureCurrentAlter()) return;
+      currentMonth--;
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      renderCalendar();
+      drawCalendarMoodGraph();
+    }
+    function nextMonth() {
+      if (!ensureCurrentAlter()) return;
+      currentMonth++;
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      renderCalendar();
+      drawCalendarMoodGraph();
+    }
+    function exportToICS() {
+      let ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//VoidScream//Local//EN\n`;
+      moods.forEach(m => {
+        const alter = alters[m.alterIndex] || alters[0];
+        const date = m.date.replace(/-/g, '');
+        ics += `BEGIN:VEVENT\nUID:${Date.now()}-${m.date}\nDTSTART:${date}\nDTEND:${date}\nSUMMARY:${alter.name} mood: ${m.mood}\nDESCRIPTION:VoidScream local mood log\nEND:VEVENT\n`;
+      });
+      ics += `END:VCALENDAR`;
+      const blob = new Blob([ics], { type: 'text/calendar' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'voidscream-moods.ics'; a.click();
+      URL.revokeObjectURL(url);
+    }
+    function importICS(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const text = ev.target.result;
+        const lines = text.split('\n');
+        let currentDate = '';
+        let currentMood = '';
+        for (let line of lines) {
+          line = line.trim();
+          if (line.startsWith('DTSTART:')) {
+            currentDate = line.substring(8);
+            if (currentDate.length === 8) currentDate = currentDate.substring(0,4) + '-' + currentDate.substring(4,6) + '-' + currentDate.substring(6,8);
+          }
+          if (line.startsWith('SUMMARY:') && line.includes('mood:')) {
+            const moodPart = line.split('mood:')[1].trim();
+            currentMood = moodPart.split(' ')[0];
+          }
+          if (line === 'END:VEVENT' && currentDate && currentMood) {
+            const idx = moods.findIndex(m => m.date === currentDate && m.alterIndex === currentAlterIndex);
+            if (idx >= 0) moods[idx].mood = currentMood;
+            else moods.push({ date: currentDate, alterIndex: currentAlterIndex, mood: currentMood });
+            currentDate = ''; currentMood = '';
+          }
+        }
+        saveData();
+        renderCalendar();
+        alert("Imported and synced another system's moods!");
+      };
+      reader.readAsText(file);
+    }
+    function openNukeModal() {
+      if (!ensureCurrentAlter()) return;
+      const deathSection = document.getElementById('alterDeathSection');
+      deathSection.classList.toggle('hidden', currentAlterIndex !== 0);
+      updateSysLockUI();
+      document.getElementById('nukeModal').classList.remove('hidden');
+    }
+    function closeNukeModal() {
+      document.getElementById('nukeModal').classList.add('hidden');
+    }
+    function openAlterDeathModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      closeNukeModal();
+      document.getElementById('eulogyText').value = "They fought bravely in the shadows... They protected the system when no one else could...";
+      document.getElementById('alterDeathModal').classList.remove('hidden');
+    }
+    function closeAlterDeathModal() {
+      document.getElementById('alterDeathModal').classList.add('hidden');
+    }
+    function confirmAlterDeath() {
+      const eulogy = document.getElementById('eulogyText').value.trim() || "A quiet departure into the void.";
+      const name = alters[currentAlterIndex].name;
+      archives.push({
+        id: Date.now(),
+        name: name,
+        eulogy: eulogy,
+        sharedChat: [],
+        privateDMs: {}
+      });
+      alters.splice(currentAlterIndex, 1);
+      if (currentAlterIndex >= alters.length) currentAlterIndex = 0;
+      saveData();
+      closeAlterDeathModal();
+      showAltersModal();
+    }
+    function confirmNuke(minutes) {
+      pendingNukeMinutes = minutes;
+      const textEl = document.getElementById('confirmText');
+      let label = minutes === 10 ? '10 minutes' : minutes === 30 ? '30 minutes' : minutes === 60 ? '1 hour' : minutes === 1440 ? '1 day' : '1 week';
+      textEl.textContent = `Delete ALL screams older than ${label}? This cannot be undone.`;
+      document.getElementById('nukeModal').classList.add('hidden');
+      document.getElementById('nukeConfirmModal').classList.remove('hidden');
+    }
+    function closeNukeConfirm() {
+      _pendingWipeAll = false;
+      document.getElementById('nukeConfirmModal').classList.add('hidden');
+    }
+    function executeNukeOrWipe() {
+      if (_pendingWipeAll) { _pendingWipeAll = false; executeWipeAll(); }
+      else executeNuke();
+    }
+    function executeNuke() {
+      const cutoff = Date.now() - (pendingNukeMinutes * 60000);
+      screams = screams.filter(s => s.alterIndex !== currentAlterIndex || s.timestamp > cutoff);
+      saveData();
+      renderFeed();
+      closeNukeConfirm();
+    }
+    let _pendingWipeAll = false;
+    function confirmWipeAll() {
+      _pendingWipeAll = true;
+      const textEl = document.getElementById('confirmText');
+      textEl.textContent = 'Delete ALL data — every alter, scream, DM, mood, and memory? This is permanent and cannot be undone.';
+      document.getElementById('nukeModal').classList.add('hidden');
+      document.getElementById('nukeConfirmModal').classList.remove('hidden');
+    }
+    function executeWipeAll() {
+      wipeAllData();
+      document.getElementById('nukeConfirmModal').classList.add('hidden');
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('gate1').classList.remove('hidden');
+      location.reload();
+    }
+    function showGate2() {
+      clearModalTextFields();
+      document.getElementById('gate1').classList.add('hidden');
+      document.getElementById('gate2').classList.remove('hidden');
+      console.log('%c[VoidScream] Gate 2: security layer engaged', 'color:#ff00cc;font-weight:bold');
+    }
+    function showGate3() {
+      clearModalTextFields();
+      checkPassword(() => {
+        document.getElementById('gate2').classList.add('hidden');
+        document.getElementById('gate3').classList.remove('hidden');
+        console.log('%c[VoidScream] Gate 3: first alter creation ready', 'color:#ff00cc;font-weight:bold');
+      });
+    }
+    function createFirstAlter() {
+      const name = document.getElementById('firstAlterName').value.trim();
+      if (!name) { alert("Alter name cannot be empty"); return; }
+      const exists = alters.some(a => a.name.toLowerCase() === name.toLowerCase());
+      if (exists) { alert("An alter with this name already exists"); return; }
+      const preview = document.getElementById('firstAvatarPreview');
+      let avatar = preview.querySelector('img') ? preview.querySelector('img').src : `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`;
+      const firstPal = _randomPalette();
+      alters = [{
+        id: Date.now(),
+        name: name,
+        handle: `@${name.toLowerCase().replace(/\s/g,'')}`,
+        avatar: avatar,
+        color: firstPal.color,
+        theme: firstPal.theme,
+        symbol: '&',
+        password: null,
+        relationshipStatus: 'Single',
+        pronouns: '',
+        role: 'Host',
+        fronting: true
+      }];
+      saveData();
+      currentAlterIndex = 0;
+      document.getElementById('gate3').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      initApp();
+    }
+    function previewFirstAvatar(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const size = 128;
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const ratio = Math.max(size / img.width, size / img.height);
+          const x = (size - img.width * ratio) / 2;
+          const y = (size - img.height * ratio) / 2;
+          ctx.drawImage(img, x, y, img.width * ratio, img.height * ratio);
+          const base64 = canvas.toDataURL('image/jpeg', 0.75);
+          document.getElementById('firstAvatarPreview').innerHTML = `<img src="${base64}" class="w-full h-full object-cover rounded-3xl">`;
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    function openMemoryArchive(idx) {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      currentArchiveIndex = idx;
+      const arch = archives[idx];
+      document.getElementById('archiveAlterName').textContent = arch.name;
+      document.getElementById('archiveEulogy').innerHTML = arch.eulogy;
+      renderArchiveSharedChat();
+      renderArchivePrivateDM();
+      document.getElementById('memoryArchiveModal').classList.remove('hidden');
+      setTimeout(() => { const inp = document.getElementById('archiveSharedInput'); if (inp) inp.focus(); }, 100);
+    }
+    function closeMemoryArchiveModal() {
+      document.getElementById('memoryArchiveModal').classList.add('hidden');
+    }
+    function renderArchiveSharedChat() {
+      const container = document.getElementById('archiveSharedChat');
+      container.innerHTML = '';
+      const arch = archives[currentArchiveIndex];
+      (arch.sharedChat || []).forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'text-sm neon-cyan';
+        div.textContent = msg;
+        container.appendChild(div);
+      });
+    }
+    function postArchiveShared() {
+      const input = document.getElementById('archiveSharedInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const arch = archives[currentArchiveIndex];
+      if (!arch.sharedChat) arch.sharedChat = [];
+      arch.sharedChat.push(text);
+      saveData();
+      input.value = '';
+      renderArchiveSharedChat();
+    }
+    function _archivePrivateKey() {
+      const alter = alters[currentAlterIndex];
+      return alter ? String(alter.id) : String(currentAlterIndex);
+    }
+    function renderArchivePrivateDM() {
+      const container = document.getElementById('archivePrivateDM');
+      container.innerHTML = '';
+      const arch = archives[currentArchiveIndex];
+      if (!arch) return;
+      const key = _archivePrivateKey();
+      const legacyKey = String(currentAlterIndex);
+      const msgs = (arch.privateDMs && (arch.privateDMs[key] || arch.privateDMs[legacyKey])) || [];
+      const alter = alters[currentAlterIndex];
+      const color = alter ? alter.color : 'var(--neon-pink)';
+      msgs.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'text-sm';
+        div.style.color = color;
+        div.textContent = msg;
+        container.appendChild(div);
+      });
+      container.scrollTop = container.scrollHeight;
+    }
+    function postArchivePrivate() {
+      const input = document.getElementById('archivePrivateInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      const arch = archives[currentArchiveIndex];
+      if (!arch) return;
+      if (!arch.privateDMs) arch.privateDMs = {};
+      const key = _archivePrivateKey();
+      if (!arch.privateDMs[key]) arch.privateDMs[key] = [];
+      arch.privateDMs[key].push(text);
+      saveData();
+      renderArchivePrivateDM();
+    }
+    function saveArchiveToCalendar() {
+      const arch = archives[currentArchiveIndex];
+      const mm = String(currentMonth + 1).padStart(2, '0');
+      const dd = String(new Date().getDate()).padStart(2, '0');
+      const dateStr = `${currentYear}-${mm}-${dd}`;
+      moods.push({ date: dateStr, alterIndex: currentAlterIndex, mood: '🪦', note: arch.eulogy });
+      saveData();
+      alert("Memory saved to your calendar.");
+      closeMemoryArchiveModal();
+    }
+    function deleteArchive() {
+      if (confirm("Delete this archive forever?")) {
+        archives.splice(currentArchiveIndex, 1);
+        saveData();
+        closeMemoryArchiveModal();
+        showAltersModal();
+      }
+    }
+    function openFeedbackModal(index) {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      feedbackTargetIndex = index;
+      const alt = alters[index];
+      document.getElementById('feedbackAlterName').textContent = alt.name;
+      document.getElementById('feedbackContact').innerHTML = `Handle: ${alt.handle}<br>Local contact only (offline)`;
+      document.getElementById('feedbackModal').classList.remove('hidden');
+      setTimeout(() => { document.getElementById('feedbackMessage').focus(); }, 100);
+    }
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').classList.add('hidden');
+    }
+    function sendFeedback() {
+      const msg = document.getElementById('feedbackMessage').value.trim();
+      if (!msg) return;
+      screams.unshift({
+        id: Date.now(),
+        alterIndex: currentAlterIndex,
+        text: `FEEDBACK for ${alters[feedbackTargetIndex].name}: ${msg}`,
+        media: null,
+        timestamp: Date.now(),
+        comments: [],
+        votes: { up: 0, down: 0 },
+        votedBy: {},
+        mood: '📬',
+        pinnedBy: []
+      });
+      saveData();
+      renderFeed();
+      alert("Feedback sent locally to the abyss.");
+      closeFeedbackModal();
+    }
+    function renderThemeGrid() {
+      if (!ensureCurrentAlter()) return;
+      const grid = document.getElementById('themeGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const alter = alters[currentAlterIndex];
+      const currentTheme = alter ? alter.theme || 'abyss' : 'abyss';
+      Object.keys(themes).forEach(key => {
+        const t = themes[key];
+        const isCurrent = key === currentTheme;
+        const row = document.createElement('div');
+        row.className = `theme-row ${isCurrent ? 'current' : ''}`;
+        row.style.background = isCurrent ? '' : `color-mix(in srgb, ${t.primary} 6%, transparent)`;
+        row.innerHTML = `
+          <div class="theme-orb" style="background:linear-gradient(135deg,${t.primary},${t.accent});box-shadow:0 0 14px ${t.primary}88;"></div>
+          <div class="flex-1 min-w-0">
+            <div class="font-black text-white tracking-wide text-sm" style="text-shadow:0 0 8px ${t.primary}">${t.name}</div>
+            <div class="text-xs text-zinc-500">${t.desc}</div>
+          </div>
+          <div class="theme-icon-wrap">
+            <i class="fa-solid ${t.icon} neon-icon" style="text-shadow:0 0 8px ${t.primary},0 0 16px ${t.primary}80;"></i>
+          </div>
+          ${isCurrent ? `<div class="text-xs font-black px-2 py-1 rounded-full flex-shrink-0" style="background:${t.primary};color:#0a001f">✓</div>` : ''}
+        `;
+        row.onclick = () => { applyTheme(key); renderThemeGrid(); };
+        grid.appendChild(row);
+      });
+      const alter2 = alters[currentAlterIndex];
+      const customColor = alter2 && alter2.customPrimary ? alter2.customPrimary : '#ff00cc';
+      const picker = document.getElementById('customColorPicker');
+      const orb = document.getElementById('customColorOrb');
+      if (picker) picker.value = customColor;
+      if (orb) { orb.style.background = customColor; orb.style.boxShadow = `0 0 12px ${customColor}`; }
+    }
+    function openThemeModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      const alter = alters[currentAlterIndex];
+      const header = document.getElementById('themeAlterName');
+      header.textContent = `${alter.name}'S THEME`;
+      const slider = document.getElementById('neonIntensitySlider');
+      if (slider) slider.value = neonIntensity;
+      const labelEl = document.getElementById('intensityLabel');
+      if (labelEl) {
+        const dots = Math.round(neonIntensity / 20);
+        labelEl.textContent = '●'.repeat(dots) + '○'.repeat(5 - dots);
+      }
+      renderThemeGrid();
+      document.getElementById('themeModal').classList.remove('hidden');
+    }
+    function closeThemeModal() {
+      document.getElementById('themeModal').classList.add('hidden');
+    }
+    function applyTheme(themeKey) {
+      if (!alters || alters.length === 0) return;
+      const alter = alters[currentAlterIndex];
+      let primary = '#ff00cc';
+      let accent = '#00ffff';
+      if (themeKey === 'custom' && alter && alter.customPrimary) {
+        primary = alter.customPrimary;
+        if (alter) alter.theme = 'custom';
+      } else {
+        const t = themes[themeKey];
+        if (!t) return;
+        primary = t.primary;
+        accent = t.accent;
+        if (alter) alter.theme = themeKey;
+      }
+      document.documentElement.style.setProperty('--neon-pink', primary);
+      document.documentElement.style.setProperty('--neon-cyan', accent);
+      const g = Math.round(3 + (neonIntensity / 100) * 22);
+      let override = document.getElementById('theme-override-style');
+      if (!override) {
+        override = document.createElement('style');
+        override.id = 'theme-override-style';
+        document.head.appendChild(override);
+      }
+      override.textContent = `
+        .theme-gradient-btn { background: linear-gradient(to right, ${primary}, ${accent}) !important; }
+        .theme-gradient-hub { background: linear-gradient(45deg, ${primary}, ${accent}) !important; }
+        .neon-pink { color: ${primary}; text-shadow: 0 0 ${g}px ${primary}, 0 0 ${g*2}px ${primary}; }
+        .neon-cyan { color: ${accent}; text-shadow: 0 0 ${g}px ${accent}, 0 0 ${g*2}px ${accent}; }
+        .neon-lime { text-shadow: 0 0 ${g}px var(--neon-lime), 0 0 ${g*2}px var(--neon-lime); }
+        #composer-nameplate { color: ${primary}; text-shadow: 0 0 ${g}px ${primary}, 0 0 ${g*2}px ${primary}; }
+        .neon-slider { background: linear-gradient(to right, color-mix(in srgb, ${primary} 25%, #1a001a), ${primary}); }
+        .neon-slider::-webkit-slider-thumb { background: ${primary}; box-shadow: 0 0 ${g}px ${primary}, 0 0 ${g*2}px ${primary}; }
+      `;
+      document.querySelectorAll('.theme-gradient-btn, .theme-gradient-hub').forEach(el => {
+        el.style.setProperty('background', `linear-gradient(45deg, ${primary}, ${accent})`, 'important');
+      });
+      if (alter) saveData();
+    }
+    function resetTheme() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      const alter = alters[currentAlterIndex];
+      if (alter) {
+        alter.theme = null;
+        alter.mood = null;
+        delete alter.sealedMood;
+        saveData();
+      }
+      applyTheme('abyss');
+      renderThemeGrid();
+      loadCurrentTheme();
+      updateComposerUI();
+    }
+    function loadCurrentTheme() {
+      if (!alters || alters.length === 0) return;
+      if (alters[currentAlterIndex] && alters[currentAlterIndex].theme) {
+        applyTheme(alters[currentAlterIndex].theme);
+      } else {
+        applyTheme('abyss');
+      }
+    }
+    function compareVersions(a, b) {
+      const pa = a.split('.').map(Number);
+      const pb = b.split('.').map(Number);
+      const len = Math.max(pa.length, pb.length);
+      for (let i = 0; i < len; i++) {
+        const na = pa[i] || 0;
+        const nb = pb[i] || 0;
+        if (na < nb) return -1;
+        if (na > nb) return 1;
+      }
+      return 0;
+    }
+    function dismissUpdateBanner() {
+      _updateDismissed = true;
+      const banner = document.getElementById('updateBanner');
+      if (banner) banner.style.display = 'none';
+    }
+    function checkForUpdates() {
+      if (_updateDismissed) return;
+      fetch('https://raw.githubusercontent.com/BoogerCheeseOnRye/voidscream/main/version.json', { cache: 'no-store' })
+        .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json(); })
+        .then(data => {
+          if (data.version && compareVersions(APP_VERSION, data.version) < 0) {
+            const banner = document.getElementById('updateBanner');
+            const vText = document.getElementById('updateVersionText');
+            const dLink = document.getElementById('updateDownloadLink');
+            if (vText) vText.textContent = 'v' + data.version;
+            if (dLink && data.download_url) dLink.href = data.download_url;
+            if (banner) banner.style.display = 'flex';
+          }
+        })
+        .catch(() => {});
+    }
+    function initApp() {
+      ensureCurrentAlter();
+      updateHeaderAlter();
+      renderFeed();
+      createFalling();
+      updateDMNotificationBadge();
+      updateSysLockUI();
+      const feedCont = document.getElementById('feed-container');
+      feedCont.style.overflowY = 'auto';
+      feedCont.style.height = 'calc(100vh - 120px)';
+      initGemma();
+      checkForUpdates();
+    }
+    window.onload = () => {
+      loadNeonIntensity();
+      loadData();
+      if (alters.length > 0) {
+        const sysPw = _getSysPw();
+        if (sysPw) {
+          const infoEl = document.getElementById('gate0-info');
+          if (infoEl) {
+            const count = alters.length;
+            const host = alters.find(a => a.role === 'Host') || alters[0];
+            infoEl.textContent = `${count} alter${count !== 1 ? 's' : ''} waiting${host ? ' — ' + host.name + "'s system" : ''}.`;
+          }
+          document.getElementById('gate0').classList.remove('hidden');
+          setTimeout(() => document.getElementById('gate0-pw').focus(), 80);
+        } else {
+          document.getElementById('app').classList.remove('hidden');
+          initApp();
+        }
+      } else {
+        document.getElementById('gate1').classList.remove('hidden');
+      }
+    };
+  </script>
+</body>
+</html>
