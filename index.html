@@ -774,17 +774,19 @@
       alters.forEach((alt, i) => {
         const unread = unreadNotifications[i] || 0;
         const hasPw = !!(alt.password && alt.password.hash);
+        const isPersona = !!alt.isPersona;
         const div = document.createElement('div');
         div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'}`;
         div.innerHTML = `
           <img src="${alt.avatar}" class="w-12 h-12 rounded-2xl border-2" style="border-color:${alt.color}">
-          <div class="flex-1"><div class="font-bold">${alt.name}</div><input type="text" value="${alt.handle}" class="bg-transparent border-b border-cyan-400 text-xs neon-cyan w-28 text-center outline-none px-1" onblur="updateAlterHandle(${i}, this.value)" style="font-family:monospace"></div>
+          <div class="flex-1"><div class="font-bold">${alt.name}${isPersona ? ' <span class="text-xs text-purple-400">[ECHO CLONE]</span>' : ''}</div><input type="text" value="${alt.handle}" class="bg-transparent border-b border-cyan-400 text-xs neon-cyan w-28 text-center outline-none px-1" onblur="updateAlterHandle(${i}, this.value)" style="font-family:monospace"></div>
           ${unread > 0 ? `<div class="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">${unread}</div>` : ''}
           ${hasPw ? `<i onclick="event.stopImmediatePropagation()" class="fa fa-lock text-red-400"></i>` : ''}
           <div class="flex gap-3">
             <label class="cursor-pointer"><i class="fa fa-camera text-2xl neon-cyan"></i><input type="file" accept="image/*" onchange="uploadAvatar(${i}, event)" class="hidden"></label>
             <button onclick="openFeedbackModal(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-lime border border-lime-400 rounded-3xl">FEEDBACK</button>
             <button onclick="setAlterPassword(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-lime border border-lime-400 rounded-3xl">🔒 PASSWORD</button>
+            <button onclick="createEchoClone(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-purple border border-purple-400 rounded-3xl">🤖 ECHO CLONE</button>
             <button onclick="killAlter(${i}); event.stopImmediatePropagation()" class="text-red-400"><i class="fa fa-trash"></i></button>
           </div>
         `;
@@ -907,6 +909,30 @@
       saveData();
       showAltersModal();
     }
+    function createEchoClone(baseIndex) {
+      if (!ensureCurrentAlter()) return;
+      const base = alters[baseIndex];
+      const cloneName = base.name + " (Echo)";
+      const exists = alters.some(a => a.name === cloneName);
+      if (exists) {
+        alert("Echo clone already exists");
+        return;
+      }
+      const clone = {
+        id: Date.now(),
+        name: cloneName,
+        handle: base.handle + "-echo",
+        avatar: base.avatar,
+        color: base.color,
+        theme: base.theme,
+        password: null,
+        isPersona: true,
+        basePersonality: baseIndex
+      };
+      alters.push(clone);
+      saveData();
+      showAltersModal();
+    }
     function setAlterPassword(index) {
       if (!ensureCurrentAlter()) return;
       currentPasswordAlter = index;
@@ -951,7 +977,6 @@
       const alter = alters[currentPasswordAlter];
 
       if (isSettingPassword) {
-        // Setting new password
         const confirmPw = confirmInput.value.trim();
         if (pw.length < 4) {
           errorEl.textContent = 'Minimum 4 characters';
@@ -970,7 +995,6 @@
         cancelPassword();
         if (pendingPasswordCallback) pendingPasswordCallback(true);
       } else {
-        // Verifying password
         if (!alter.password || !alter.password.salt) {
           cancelPassword();
           return;
@@ -1168,6 +1192,20 @@
     function closeDMChat() {
       document.getElementById('dmChatModal').classList.add('hidden');
     }
+    function generatePersonaReply(targetIndex, lastMessage) {
+      const target = alters[targetIndex];
+      if (!target || !target.isPersona) return "…";
+      const base = alters[target.basePersonality] || target;
+      const moodEmoji = selectedScreamMood || '🌑';
+      const templates = [
+        `${moodEmoji} ${lastMessage}… exactly what I was thinking`,
+        `Yeah… ${lastMessage.toLowerCase()} hits different when you're in the void`,
+        `Echoing that. ${lastMessage}. The system hears you.`,
+        `Same energy. ${lastMessage} — I felt that in my bones.`,
+        `🌀 ${lastMessage}… mirror talking back`
+      ];
+      return templates[Math.floor(Math.random() * templates.length)];
+    }
     function renderDMChat() {
       const container = document.getElementById('dmMessages');
       container.innerHTML = '';
@@ -1197,6 +1235,16 @@
       input.value = '';
       renderDMChat();
       updateDMNotificationBadge();
+      const target = alters[currentDMTarget];
+      if (target && target.isPersona) {
+        setTimeout(() => {
+          const replyText = generatePersonaReply(currentDMTarget, text);
+          if (!dmMessages[key]) dmMessages[key] = [];
+          dmMessages[key].push({ from: currentDMTarget, text: replyText, time: Date.now() });
+          saveData();
+          renderDMChat();
+        }, 800);
+      }
     }
     function updateDMNotificationBadge() {
       const unreadForCurrent = unreadNotifications[currentAlterIndex] || 0;
