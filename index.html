@@ -759,6 +759,7 @@
           <div class="flex gap-3">
             <label class="cursor-pointer"><i class="fa fa-camera text-2xl neon-cyan"></i><input type="file" accept="image/*" onchange="uploadAvatar(${i}, event)" class="hidden"></label>
             <button onclick="openFeedbackModal(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-lime border border-lime-400 rounded-3xl">FEEDBACK</button>
+            <button onclick="setAlterPassword(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-lime border border-lime-400 rounded-3xl">🔒 PASSWORD</button>
             <button onclick="killAlter(${i}); event.stopImmediatePropagation()" class="text-red-400"><i class="fa fa-trash"></i></button>
           </div>
         `;
@@ -869,7 +870,7 @@
         alert("An alter with this name already exists");
         return;
       }
-      alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa', theme: 'abyss' });
+      alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa', theme: 'abyss', password: null });
       saveData();
       document.getElementById('newAlterName').value = '';
       showAltersModal();
@@ -880,6 +881,22 @@
       alters[index].handle = newHandle;
       saveData();
       showAltersModal();
+    }
+    function setAlterPassword(index) {
+      if (!ensureCurrentAlter()) return;
+      const pw = prompt("Set password for this alter (leave empty to remove protection):");
+      if (pw === null) return;
+      alters[index].password = pw.trim() || null;
+      saveData();
+      showAltersModal();
+    }
+    function checkPassword() {
+      const alter = alters[currentAlterIndex];
+      if (!alter || !alter.password) return true;
+      const entered = prompt("Enter password to access this feature:");
+      if (entered === alter.password) return true;
+      alert("Incorrect password.");
+      return false;
     }
     function viewMedia(url) {
       const container = document.getElementById('mediaContainer');
@@ -1009,6 +1026,7 @@
     }
     function openDMModal() {
       if (!ensureCurrentAlter()) return;
+      if (!checkPassword()) return;
       toggleHubMenu();
       const list = document.getElementById('dmAltersList');
       list.innerHTML = '';
@@ -1096,6 +1114,7 @@
     function openCalendarModal() {
       clearModalTextFields();
       if (!ensureCurrentAlter()) return;
+      if (!checkPassword()) return;
       calendarMode = 'alter';
       document.getElementById('calendarModeBtn').textContent = 'ALTER MODE';
       renderCalendar();
@@ -1288,7 +1307,8 @@
         handle: `@${name.toLowerCase().replace(/\s/g,'')}`,
         avatar: avatar,
         color: '#ff00aa',
-        theme: 'abyss'
+        theme: 'abyss',
+        password: null
       }];
       saveData();
       currentAlterIndex = 0;
@@ -1480,6 +1500,14 @@
       } else {
         applyTheme('abyss');
       }
+    }
+    function checkPassword() {
+      const alter = alters[currentAlterIndex];
+      if (!alter || !alter.password) return true;
+      const entered = prompt("Enter password to access this feature:");
+      if (entered === alter.password) return true;
+      alert("Incorrect password.");
+      return false;
     }
     function initApp() {
       loadData();
