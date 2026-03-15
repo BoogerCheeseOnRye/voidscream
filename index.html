@@ -571,16 +571,20 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
     const GEMMA_MODEL_URL = "https://huggingface.co/google/gemma-3-270M-GGUF/resolve/main/gemma-3-270M-Q4_K_M.gguf";
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
     const themes = {
-      abyss: {primary: '#ff00cc', accent: '#00ffff', name: 'ABYSS'},
-      blood: {primary: '#ff0033', accent: '#aa0022', name: 'BLOOD'},
-      electric: {primary: '#00ccff', accent: '#0088ff', name: 'ELECTRIC'},
-      toxic: {primary: '#ccff00', accent: '#88ff00', name: 'TOXIC'},
-      phantom: {primary: '#cc00ff', accent: '#9900cc', name: 'PHANTOM'},
-      inferno: {primary: '#ff6600', accent: '#ff2200', name: 'INFERNO'},
-      spectral: {primary: '#dddddd', accent: '#aaaaaa', name: 'SPECTRAL'},
-      matrix: {primary: '#00ff44', accent: '#008822', name: 'MATRIX'},
-      chaos: {primary: '#ff00cc', accent: '#ccff00', name: 'CHAOS'}
-    };
+  abyss: {primary: '#ff00cc', accent: '#00ffff', name: 'ABYSS'},
+  blood: {primary: '#ff0033', accent: '#aa0022', name: 'BLOOD'},
+  electric: {primary: '#00ccff', accent: '#0088ff', name: 'ELECTRIC'},
+  toxic: {primary: '#ccff00', accent: '#88ff00', name: 'TOXIC'},
+  phantom: {primary: '#cc00ff', accent: '#9900cc', name: 'PHANTOM'},
+  inferno: {primary: '#ff6600', accent: '#ff2200', name: 'INFERNO'},
+  spectral: {primary: '#dddddd', accent: '#aaaaaa', name: 'SPECTRAL'},
+  matrix: {primary: '#00ff44', accent: '#008822', name: 'MATRIX'},
+  chaos: {primary: '#ff00cc', accent: '#ccff00', name: 'CHAOS'},
+  glitch: {primary: '#00ffcc', accent: '#ff00aa', name: 'GLITCH'},
+  shadow: {primary: '#6600cc', accent: '#330066', name: 'SHADOW'},
+  ether: {primary: '#aaffff', accent: '#88ccff', name: 'ETHER'},
+  pulse: {primary: '#ffaa00', accent: '#cc6600', name: 'PULSE'}
+};
     const moodToTheme = {
       '😡': 'inferno',
       '😢': 'spectral',
@@ -1697,26 +1701,41 @@ function showGate2() {
       closeFeedbackModal();
     }
    function renderThemeGrid() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
   const grid = document.getElementById('themeGrid');
   grid.innerHTML = '';
-  const currentTheme = alters[currentAlterIndex] ? alters[currentAlterIndex].theme || 'abyss' : 'abyss';
+  const alter = alters[currentAlterIndex];
+  const currentTheme = alter ? alter.theme || 'abyss' : 'abyss';
   Object.keys(themes).forEach(key => {
     const t = themes[key];
     const card = document.createElement('div');
     card.className = `theme-card ${key === currentTheme ? 'current' : ''} transition-all`;
     card.style.background = `linear-gradient(45deg, ${t.primary}, ${t.accent})`;
-    card.style.boxShadow = `0 0 25px ${alters[currentAlterIndex] ? alters[currentAlterIndex].color : '#00ffff'}`;
-    const moodForTheme = Object.keys(moodToTheme).find(m => moodToTheme[m] === key) || 'Dark Void';
-    card.innerHTML = `
-      <div style="font-size:48px; line-height:1;">${moodForTheme}</div>
-      <div>${t.name}</div>
-    `;
-    card.onclick = () => {
-      applyTheme(key);
-      renderThemeGrid();
-    };
+    card.style.boxShadow = `0 0 25px ${alter ? alter.color : '#00ffff'}`;
+    card.innerHTML = `<div style="font-size:48px; line-height:1;">${t.name}</div>`;
+    card.onclick = () => { applyTheme(key); renderThemeGrid(); };
     grid.appendChild(card);
   });
+  // CUSTOM hex picker (per-alter sealed)
+  const customCard = document.createElement('div');
+  customCard.className = `theme-card transition-all cursor-pointer`;
+  customCard.style.background = `linear-gradient(45deg, ${alter && alter.customPrimary ? alter.customPrimary : alter.color}, #222)`;
+  customCard.innerHTML = `<div style="font-size:48px; line-height:1;">CUSTOM</div><input id="customColorPicker" type="color" value="${alter && alter.customPrimary ? alter.customPrimary : '#ff00cc'}" style="width:100%;height:40px;">`;
+  customCard.onclick = () => {
+    const picker = document.getElementById('customColorPicker');
+    const hex = picker.value;
+    if (alter) {
+      alter.customPrimary = hex;
+      const salt = alter.id || currentAlterIndex + 'voidsalt';
+      alter.sealedCustom = btoa(hex + salt);
+      saveData();
+    }
+    applyTheme('custom');
+    renderThemeGrid();
+  };
+  grid.appendChild(customCard);
+}
   function openThemeModal() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
@@ -1731,16 +1750,20 @@ function showGate2() {
 function applyTheme(themeKey) {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
-  const t = themes[themeKey];
   const alter = alters[currentAlterIndex];
-  document.documentElement.style.setProperty('--neon-pink', t.primary);
-  document.documentElement.style.setProperty('--neon-cyan', t.accent);
-  if (alter) {
-    alter.theme = themeKey;
-    const suggestedMood = Object.keys(moodToTheme).find(m => moodToTheme[m] === themeKey);
-    if (suggestedMood && !alter.mood) alter.mood = suggestedMood;
-    saveData();
+  let primary = '#ff00cc';
+  let accent = '#00ffff';
+  if (themeKey === 'custom' && alter && alter.customPrimary) {
+    primary = alter.customPrimary;
+  } else {
+    const t = themes[themeKey];
+    primary = t.primary;
+    accent = t.accent;
+    if (alter) alter.theme = themeKey;
   }
+  document.documentElement.style.setProperty('--neon-pink', primary);
+  document.documentElement.style.setProperty('--neon-cyan', accent);
+  if (alter) saveData();
 }
    function resetTheme() {
   clearModalTextFields();
