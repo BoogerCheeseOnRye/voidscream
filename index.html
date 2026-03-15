@@ -93,6 +93,13 @@
       transition: all 0.3s;
       position: relative;
     }
+    .counselor-btn {
+      animation: counselorPulse 2s infinite ease-in-out;
+    }
+    @keyframes counselorPulse {
+      0%, 100% { box-shadow: 0 0 15px #00ff88; transform: scale(1); }
+      50% { box-shadow: 0 0 30px #00ff88, 0 0 45px #00cc66; transform: scale(1.12); }
+    }
     .hub-menu-btn .dm-badge {
       position: absolute;
       top: -4px;
@@ -247,6 +254,8 @@
       <button onclick="showAltersModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-users"></i></button>
       <button onclick="openDMModal();toggleHubMenu()" id="dmHubBtn" class="hub-menu-btn"><i class="fa fa-envelope"></i><span id="dmBadge" class="dm-badge hidden">0</span></button>
       <button onclick="openThemeModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-palette"></i></button>
+      <!-- NEW COUNSELOR DM BUTTON -->
+      <button onclick="openCounselorDM();toggleHubMenu()" class="hub-menu-btn counselor-btn"><i class="fa fa-brain"></i><span class="gemma-badge absolute -top-1 -right-1">COUNSEL</span></button>
     </div>
   </div>
   <!-- SCREAM COMPOSER MODAL -->
@@ -535,7 +544,7 @@
     let pendingPasswordCallback = null;
     let currentPasswordAlter = null;
     let isSettingPassword = false;
-    // GEMMA 3 270M (optimized – lazy load, smaller context, streaming stub, no blocking)
+    // GEMMA 3 270M (optimized)
     let wllamaInstance = null;
     let gemmaLoaded = false;
     const GEMMA_MODEL_URL = "https://huggingface.co/google/gemma-3-270M-GGUF/resolve/main/gemma-3-270M-Q4_K_M.gguf";
@@ -561,41 +570,29 @@
       '🌀': 'matrix'
     };
 
-    // OPTIMIZED GEMMA (lazy, non-blocking, smaller context, fallback)
     async function initGemma() {
       if (gemmaLoaded || wllamaInstance) return;
       try {
-        wllamaInstance = new Wllama(GEMMA_MODEL_URL, { nThreads: 2, nContext: 512, cacheSize: 0 });
+        wllamaInstance = new Wllama(GEMMA_MODEL_URL, { nThreads: 2, nContext: 512 });
         await wllamaInstance.loadModel();
         gemmaLoaded = true;
-      } catch (e) {
-        console.log("%cGemma 3 270M stub active (real model cached on first use)", "color:#ff8800");
-      }
+      } catch (e) {}
     }
 
-    async function generateWithGemma(targetIndex, userMessage) {
+    async function generateWithGemma(targetIndex, userMessage, isCounselor = false) {
       await initGemma();
       const target = alters[targetIndex];
       const base = alters[target.basePersonality] || target;
-      const systemPrompt = `You are ${base.name} (Gemma 3 270M echo clone). Respond in their exact voice, tone, and style using only their recent DMs and current mood (${selectedScreamMood || '🌑'}). Keep replies short, raw, personal.`;
+      let systemPrompt = `You are ${base.name} (Gemma 3 270M echo clone). Respond in their exact voice, tone, and style using only their recent DMs and current mood (${selectedScreamMood || '🌑'}). Keep replies short, raw, personal.`;
+      if (isCounselor) systemPrompt = `You are the internal Counselor for ${base.name}. Be compassionate, supportive, and therapeutic. Help them process feelings safely. Respond gently and insightfully.`;
       const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}\nYou:`;
       if (wllamaInstance && gemmaLoaded) {
-        const result = await wllamaInstance.generate(fullPrompt, { 
-          maxTokens: 60, 
-          temperature: 0.85, 
-          topP: 0.9,
-          stream: false 
-        });
+        const result = await wllamaInstance.generate(fullPrompt, { maxTokens: 60, temperature: 0.85, topP: 0.9 });
         return result.trim();
       }
-      // ultra-light offline fallback (exact Gemma-style imitation)
-      const templates = [
-        `${selectedScreamMood} ${userMessage}… exactly what I was thinking`,
-        `Yeah… ${userMessage.toLowerCase()} hits different when you're in the void`,
-        `Echoing that. ${userMessage}. The system hears you.`,
-        `Same energy. ${userMessage} — I felt that in my bones.`,
-        `🌀 ${userMessage}… mirror talking back`
-      ];
+      const templates = isCounselor 
+        ? [`I hear you... ${userMessage}. You're not alone in this.`, `That sounds heavy. How are you feeling right now?`, `You're safe here. Let's breathe through it together.`]
+        : [`${selectedScreamMood} ${userMessage}… exactly what I was thinking`, `Yeah… ${userMessage.toLowerCase()} hits different when you're in the void`];
       return templates[Math.floor(Math.random() * templates.length)];
     }
 
@@ -604,56 +601,33 @@
       const encoder = new TextEncoder();
       const data = encoder.encode(pw + salt);
       const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      return Array.from(new Uint8Array(hashBuffer))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     function generateSalt() {
-      return Array.from(crypto.getRandomValues(new Uint8Array(16)))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
+      return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     function clearModalTextFields() {
-      const fields = [
-        'screamText','customMoodInput','mediaUrl','replyText','replyMedia',
-        'dmInput','eulogyText','newAlterName','archiveSharedInput',
-        'archivePrivateInput','firstAlterName','feedbackMessage',
-        'passwordInput','passwordConfirm'
-      ];
-      fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-      });
+      const fields = ['screamText','customMoodInput','mediaUrl','replyText','replyMedia','dmInput','eulogyText','newAlterName','archiveSharedInput','archivePrivateInput','firstAlterName','feedbackMessage','passwordInput','passwordConfirm'];
+      fields.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     }
 
     function ensureCurrentAlter() {
-      if (!alters || alters.length === 0) {
-        alert("No alter selected yet. Create one first.");
-        return false;
-      }
-      if (currentAlterIndex < 0 || currentAlterIndex >= alters.length) {
-        currentAlterIndex = 0;
-      }
+      if (!alters || alters.length === 0) { alert("No alter selected yet. Create one first."); return false; }
+      if (currentAlterIndex < 0 || currentAlterIndex >= alters.length) currentAlterIndex = 0;
       updateComposerUI();
       updateDMNotificationBadge();
       return true;
     }
 
     function loadData() {
-      if (localStorage.getItem('voidscreams')) screams = JSON.parse(localStorage.getItem('voidscreams'));
-      else screams = [];
-      if (localStorage.getItem('voidalters')) alters = JSON.parse(localStorage.getItem('voidalters'));
-      else alters = [];
-      if (localStorage.getItem('voidmoods')) moods = JSON.parse(localStorage.getItem('voidmoods'));
-      else moods = [];
-      if (localStorage.getItem('voidDMs')) dmMessages = JSON.parse(localStorage.getItem('voidDMs'));
-      else dmMessages = {};
-      if (localStorage.getItem('voidNotifications')) unreadNotifications = JSON.parse(localStorage.getItem('voidNotifications'));
-      else unreadNotifications = {};
-      if (localStorage.getItem('voidArchives')) archives = JSON.parse(localStorage.getItem('voidArchives'));
-      else archives = [];
+      if (localStorage.getItem('voidscreams')) screams = JSON.parse(localStorage.getItem('voidscreams')); else screams = [];
+      if (localStorage.getItem('voidalters')) alters = JSON.parse(localStorage.getItem('voidalters')); else alters = [];
+      if (localStorage.getItem('voidmoods')) moods = JSON.parse(localStorage.getItem('voidmoods')); else moods = [];
+      if (localStorage.getItem('voidDMs')) dmMessages = JSON.parse(localStorage.getItem('voidDMs')); else dmMessages = {};
+      if (localStorage.getItem('voidNotifications')) unreadNotifications = JSON.parse(localStorage.getItem('voidNotifications')); else unreadNotifications = {};
+      if (localStorage.getItem('voidArchives')) archives = JSON.parse(localStorage.getItem('voidArchives')); else archives = [];
       if (alters.length > 0) currentAlterIndex = 0;
     }
     function saveData() {
@@ -699,13 +673,9 @@
         let contentHTML = `<p class="text-xl neon-cyan">${s.text}</p>`;
         if (s.media) {
           const lower = s.media.toLowerCase();
-          if (lower.endsWith('.mp4') || lower.endsWith('.webm')) {
-            contentHTML += `<div class="image-wrapper mt-4"><video src="${s.media}" class="post-video" controls onclick="event.stopImmediatePropagation()"></video></div>`;
-          } else if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
-            contentHTML += `<div class="image-wrapper mt-4"><img src="${s.media}" class="post-image" onclick="event.stopImmediatePropagation();viewMedia('${s.media}')"></div>`;
-          } else {
-            contentHTML += `<div class="mt-4 text-cyan-400 underline"><a href="${s.media}" target="_blank" class="neon-cyan" onclick="event.stopImmediatePropagation()">${s.media}</a></div>`;
-          }
+          if (lower.endsWith('.mp4') || lower.endsWith('.webm')) contentHTML += `<div class="image-wrapper mt-4"><video src="${s.media}" class="post-video" controls onclick="event.stopImmediatePropagation()"></video></div>`;
+          else if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) contentHTML += `<div class="image-wrapper mt-4"><img src="${s.media}" class="post-image" onclick="event.stopImmediatePropagation();viewMedia('${s.media}')"></div>`;
+          else contentHTML += `<div class="mt-4 text-cyan-400 underline"><a href="${s.media}" target="_blank" class="neon-cyan" onclick="event.stopImmediatePropagation()">${s.media}</a></div>`;
         }
         const pinIcon = s.pinnedBy && s.pinnedBy.includes(currentAlterIndex) ? '<i class="fa fa-thumbtack text-yellow-400 ml-auto"></i>' : '';
         card.innerHTML = `
@@ -959,21 +929,8 @@
       const base = alters[baseIndex];
       const cloneName = base.name + " (Gemma Echo)";
       const exists = alters.some(a => a.name === cloneName);
-      if (exists) {
-        alert("Gemma Echo clone already exists");
-        return;
-      }
-      const clone = {
-        id: Date.now(),
-        name: cloneName,
-        handle: base.handle + "-gemma",
-        avatar: base.avatar,
-        color: base.color,
-        theme: base.theme,
-        password: null,
-        isPersona: true,
-        basePersonality: baseIndex
-      };
+      if (exists) { alert("Gemma Echo clone already exists"); return; }
+      const clone = { id: Date.now(), name: cloneName, handle: base.handle + "-gemma", avatar: base.avatar, color: base.color, theme: base.theme, password: null, isPersona: true, basePersonality: baseIndex };
       alters.push(clone);
       saveData();
       showAltersModal();
@@ -982,9 +939,7 @@
       if (!ensureCurrentAlter()) return;
       currentPasswordAlter = index;
       isSettingPassword = true;
-      pendingPasswordCallback = (success) => {
-        if (success) showAltersModal();
-      };
+      pendingPasswordCallback = (success) => { if (success) showAltersModal(); };
       document.getElementById('passwordModalTitle').textContent = 'SET PASSWORD';
       document.getElementById('passwordInput').placeholder = 'NEW PASSWORD';
       document.getElementById('passwordConfirm').classList.remove('hidden');
@@ -993,10 +948,7 @@
     }
     async function checkPassword(onSuccess) {
       const alter = alters[currentAlterIndex];
-      if (!alter || !alter.password || !alter.password.hash) {
-        onSuccess();
-        return;
-      }
+      if (!alter || !alter.password || !alter.password.hash) { onSuccess(); return; }
       currentPasswordAlter = currentAlterIndex;
       isSettingPassword = false;
       pendingPasswordCallback = onSuccess;
@@ -1012,27 +964,12 @@
       const pw = input.value.trim();
       const errorEl = document.getElementById('passwordError');
       errorEl.classList.add('hidden');
-
-      if (!pw) {
-        errorEl.textContent = 'Password cannot be empty';
-        errorEl.classList.remove('hidden');
-        return;
-      }
-
+      if (!pw) { errorEl.textContent = 'Password cannot be empty'; errorEl.classList.remove('hidden'); return; }
       const alter = alters[currentPasswordAlter];
-
       if (isSettingPassword) {
         const confirmPw = confirmInput.value.trim();
-        if (pw.length < 4) {
-          errorEl.textContent = 'Minimum 4 characters';
-          errorEl.classList.remove('hidden');
-          return;
-        }
-        if (pw !== confirmPw) {
-          errorEl.textContent = 'Passwords do not match';
-          errorEl.classList.remove('hidden');
-          return;
-        }
+        if (pw.length < 4) { errorEl.textContent = 'Minimum 4 characters'; errorEl.classList.remove('hidden'); return; }
+        if (pw !== confirmPw) { errorEl.textContent = 'Passwords do not match'; errorEl.classList.remove('hidden'); return; }
         const salt = alter.password && alter.password.salt ? alter.password.salt : generateSalt();
         const hash = await hashPassword(pw, salt);
         alter.password = { hash, salt };
@@ -1040,10 +977,7 @@
         cancelPassword();
         if (pendingPasswordCallback) pendingPasswordCallback(true);
       } else {
-        if (!alter.password || !alter.password.salt) {
-          cancelPassword();
-          return;
-        }
+        if (!alter.password || !alter.password.salt) { cancelPassword(); return; }
         const enteredHash = await hashPassword(pw, alter.password.salt);
         if (enteredHash === alter.password.hash) {
           cancelPassword();
@@ -1065,18 +999,13 @@
     }
     function togglePasswordVisibility() {
       const inputs = [document.getElementById('passwordInput'), document.getElementById('passwordConfirm')];
-      inputs.forEach(input => {
-        if (input) input.type = input.type === 'password' ? 'text' : 'password';
-      });
+      inputs.forEach(input => { if (input) input.type = input.type === 'password' ? 'text' : 'password'; });
     }
     function viewMedia(url) {
       const container = document.getElementById('mediaContainer');
       const ext = url.toLowerCase();
-      if (ext.endsWith('.mp4') || ext.endsWith('.webm')) {
-        container.innerHTML = `<video id="modalMedia" src="${url}" controls autoplay></video>`;
-      } else {
-        container.innerHTML = `<img id="modalMedia" src="${url}" onclick="closeMediaModal()">`;
-      }
+      if (ext.endsWith('.mp4') || ext.endsWith('.webm')) container.innerHTML = `<video id="modalMedia" src="${url}" controls autoplay></video>`;
+      else container.innerHTML = `<img id="modalMedia" src="${url}" onclick="closeMediaModal()">`;
       document.getElementById('mediaModal').classList.remove('hidden');
     }
     function closeMediaModal() { document.getElementById('mediaModal').classList.add('hidden'); }
@@ -1089,13 +1018,9 @@
       let contentHTML = `<p class="text-xl neon-cyan">${post.text}</p>`;
       if (post.media) {
         const lower = post.media.toLowerCase();
-        if (lower.endsWith('.mp4') || lower.endsWith('.webm')) {
-          contentHTML += `<div class="image-wrapper mt-4"><video src="${post.media}" class="post-video" controls></video></div>`;
-        } else if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
-          contentHTML += `<div class="image-wrapper mt-4"><img src="${post.media}" class="post-image" onclick="viewMedia('${post.media}')"></div>`;
-        } else {
-          contentHTML += `<div class="mt-4 text-cyan-400 underline"><a href="${post.media}" target="_blank" class="neon-cyan">${post.media}</a></div>`;
-        }
+        if (lower.endsWith('.mp4') || lower.endsWith('.webm')) contentHTML += `<div class="image-wrapper mt-4"><video src="${post.media}" class="post-video" controls></video></div>`;
+        else if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) contentHTML += `<div class="image-wrapper mt-4"><img src="${post.media}" class="post-image" onclick="viewMedia('${post.media}')"></div>`;
+        else contentHTML += `<div class="mt-4 text-cyan-400 underline"><a href="${post.media}" target="_blank" class="neon-cyan">${post.media}</a></div>`;
       }
       const isPinned = post.pinnedBy && post.pinnedBy.includes(currentAlterIndex);
       detailPost.innerHTML = `
@@ -1290,6 +1215,38 @@
         badge.classList.add('hidden');
       }
     }
+    // NEW: COUNSELOR DM (re-uses echo/Gemma code with therapeutic prompt)
+    async function openCounselorDM() {
+      if (!ensureCurrentAlter()) return;
+      // Create counselor persona if none exists
+      let counselorIndex = alters.findIndex(a => a.name === "Internal Counselor");
+      if (counselorIndex === -1) {
+        const base = alters[currentAlterIndex];
+        const counselor = {
+          id: Date.now(),
+          name: "Internal Counselor",
+          handle: "@counsel",
+          avatar: base.avatar,
+          color: "#00ff88",
+          theme: base.theme,
+          password: null,
+          isPersona: true,
+          basePersonality: currentAlterIndex
+        };
+        alters.push(counselor);
+        counselorIndex = alters.length - 1;
+        saveData();
+      }
+      currentDMTarget = counselorIndex;
+      const header = document.getElementById('dmChatHeader');
+      header.textContent = `Counselor DM`;
+      unreadNotifications[counselorIndex] = 0;
+      saveData();
+      renderDMChat();
+      updateDMNotificationBadge();
+      document.getElementById('dmChatModal').classList.remove('hidden');
+      setTimeout(() => { document.getElementById('dmInput').focus(); }, 100);
+    }
     function toggleCalendarMode() {
       calendarMode = calendarMode === 'alter' ? 'system' : 'alter';
       const btn = document.getElementById('calendarModeBtn');
@@ -1476,15 +1433,9 @@
     }
     function createFirstAlter() {
       const name = document.getElementById('firstAlterName').value.trim();
-      if (!name) {
-        alert("Alter name cannot be empty");
-        return;
-      }
+      if (!name) { alert("Alter name cannot be empty"); return; }
       const exists = alters.some(a => a.name.toLowerCase() === name.toLowerCase());
-      if (exists) {
-        alert("An alter with this name already exists");
-        return;
-      }
+      if (exists) { alert("An alter with this name already exists"); return; }
       const preview = document.getElementById('firstAvatarPreview');
       let avatar = preview.querySelector('img') ? preview.querySelector('img').src : `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`;
       alters = [{
@@ -1687,10 +1638,6 @@
         applyTheme('abyss');
       }
     }
-    // === REVISED FLOW PROTOCOL ===
-    // Flow is now ONLY the flow.txt file in the repo: https://raw.githubusercontent.com/BoogerCheeseOnRye/voidscream/main/flow.txt
-    // This file is the entirety of 'the flow'. All previous protocols are superseded.
-    // Every "run flow" command MUST first read flow.txt and execute its instructions exactly.
     function initApp() {
       loadData();
       if (!localStorage.getItem('voidscreams')) screams = [];
@@ -1701,7 +1648,7 @@
       const feedCont = document.getElementById('feed-container');
       feedCont.style.overflowY = 'auto';
       feedCont.style.height = 'calc(100vh - 120px)';
-      initGemma(); // Gemma 3 270M ready for echo clones
+      initGemma();
     }
     window.onload = () => {
       loadData();
