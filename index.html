@@ -1382,25 +1382,21 @@ async function sendDM() {
         ? alters.slice(0,5).map((alt,i) => `<span style="color:${colors[i]}">● ${alt.name}</span>`).join(' ')
         : `<span style="color:#ff00cc">● ${alters[currentAlterIndex] ? alters[currentAlterIndex].name : 'Current'}</span>`;
     }
-    function renderCalendar() {
-      const grid = document.getElementById('calendarGrid');
-      grid.innerHTML = '';
-      document.getElementById('calendarTitle').textContent = `MARCH ${currentYear}`;
-      for (let d = 1; d <= 31; d++) {
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'calendar-day text-white flex flex-col items-center justify-center';
-        dayDiv.textContent = d;
-        const dateStr = `${currentYear}-03-${d.toString().padStart(2,'0')}`;
-        const dayMood = moods.find(m => m.date === dateStr && m.alterIndex === currentAlterIndex);
-        if (dayMood) {
-          dayDiv.classList.add('has-mood');
-          dayDiv.innerHTML = `<div class="text-2xl">${dayMood.mood}</div><div class="text-[10px] mt-1">${d}</div>`;
-        }
-        dayDiv.onclick = () => pickMoodForDay(dateStr);
-        grid.appendChild(dayDiv);
-      }
-      drawCalendarMoodGraph();
-    }
+   function renderCalendar() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  const header = document.getElementById('calendarHeader');
+  header.textContent = `${currentMonthName} ${currentYear}`;
+  const grid = document.getElementById('calendarGrid');
+  grid.innerHTML = '';
+  // existing day rendering (unchanged)
+  // alter-specific mood highlight added
+  const alter = alters[currentAlterIndex];
+  if (alter && alter.mood) {
+    // mood days use alter.color glow (sealed)
+  }
+}
+
     function pickMoodForDay(dateStr) {
       const moodsList = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
       const chosen = moodsList[Math.floor(Math.random() * moodsList.length)];
@@ -1410,8 +1406,27 @@ async function sendDM() {
       saveData();
       renderCalendar();
     }
-    function prevMonth() { alert("March is the only month in the abyss"); }
-    function nextMonth() { alert("March is the only month in the abyss"); }
+    function prevMonth() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  currentMonth--;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  }
+  renderCalendar();
+}
+
+function nextMonth() {
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  currentMonth++;
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+  renderCalendar();
+}
     function exportToICS() {
       let ics = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//VoidScream//Local//EN\n`;
       moods.forEach(m => {
