@@ -641,7 +641,7 @@
       const list = document.getElementById('alters-list');
       list.innerHTML = '';
       alters.forEach((alt, i) => {
-        const unread = (currentAlterIndex === 0) ? (unreadNotifications[i] || 0) : 0;
+        const unread = unreadNotifications[i] || 0;
         const div = document.createElement('div');
         div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'}`;
         div.innerHTML = `
@@ -656,7 +656,6 @@
         div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button')) { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); updateDMNotificationBadge(); closeAltersModal(); } };
         list.appendChild(div);
       });
-      // Add archive section if any
       if (archives.length > 0) {
         const archiveHeader = document.createElement('div');
         archiveHeader.className = 'neon-lime text-xs mt-8 mb-3 px-4';
