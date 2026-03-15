@@ -303,7 +303,7 @@
   <div id="screamDetailModal" onclick="if(event.target.id==='screamDetailModal')closeScreamDetail()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[70]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
-        <button onclick="closeScreamDetail();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+        <button onclick="returnToModal='screamDetailModal';closeScreamDetail();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
           <i class="fa fa-users text-xl"></i>
           <span class="font-bold">SWITCH ALTER</span>
         </button>
@@ -330,7 +330,7 @@
   <div id="calendarModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
       <div class="flex items-center justify-between mb-6">
-        <button onclick="closeCalendarModal();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+        <button onclick="returnToModal='calendarModal';closeCalendarModal();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
           <i class="fa fa-users text-xl"></i>
           <span class="font-bold">SWITCH ALTER</span>
         </button>
@@ -403,6 +403,7 @@
     let dmMessages = {};
     let unreadNotifications = {};
     let calendarMode = 'alter';
+    let returnToModal = null;
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
     function loadData() {
       if (localStorage.getItem('voidscreams')) screams = JSON.parse(localStorage.getItem('voidscreams'));
@@ -581,7 +582,16 @@
       setTimeout(drawMoodGraph, 100);
       document.getElementById('altersModal').classList.remove('hidden');
     }
-    function closeAltersModal() { document.getElementById('altersModal').classList.add('hidden'); }
+    function closeAltersModal() {
+      document.getElementById('altersModal').classList.add('hidden');
+      if (returnToModal === 'screamDetailModal') {
+        returnToModal = null;
+        document.getElementById('screamDetailModal').classList.remove('hidden');
+      } else if (returnToModal === 'calendarModal') {
+        returnToModal = null;
+        document.getElementById('calendarModal').classList.remove('hidden');
+      }
+    }
     function drawMoodGraph() {
       const canvas = document.getElementById('moodGraph');
       if (!canvas) return;
@@ -850,7 +860,9 @@
       drawCalendarMoodGraph();
       document.getElementById('calendarModal').classList.remove('hidden');
     }
-    function closeCalendarModal() { document.getElementById('calendarModal').classList.add('hidden'); }
+    function closeCalendarModal() {
+      document.getElementById('calendarModal').classList.add('hidden');
+    }
     function drawCalendarMoodGraph() {
       const canvas = document.getElementById('calendarMoodGraph');
       if (!canvas) return;
