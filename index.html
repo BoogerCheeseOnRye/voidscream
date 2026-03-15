@@ -449,14 +449,14 @@
       </div>
     </div>
   </div>
-  <!-- REFINED THEME MODAL -->
+  <!-- REFINED MOOD-BASED THEME MODAL -->
   <div id="themeModal" onclick="if(event.target.id==='themeModal')closeThemeModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[62]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <div id="themeAlterName" class="neon-pink text-3xl font-black"></div>
         <button onclick="closeThemeModal()" class="text-4xl neon-cyan">×</button>
       </div>
-      <div class="neon-lime text-xs mb-6 text-center">CHOOSE YOUR ALTER'S THEME • LIVE PREVIEW</div>
+      <div class="neon-lime text-xs mb-6 text-center">MOOD-BASED THEMES • LIVE PREVIEW</div>
       <div id="themeGrid" class="grid grid-cols-3 gap-6"></div>
       <button onclick="resetTheme()" class="mt-8 w-full py-5 border-2 border-zinc-700 rounded-3xl text-sm neon-cyan">RESET TO DEFAULT ABYSS</button>
     </div>
@@ -537,6 +537,15 @@
       spectral: {primary: '#dddddd', accent: '#aaaaaa', name: 'SPECTRAL'},
       matrix: {primary: '#00ff44', accent: '#008822', name: 'MATRIX'},
       chaos: {primary: '#ff00cc', accent: '#ccff00', name: 'CHAOS'}
+    };
+    const moodToTheme = {
+      '😡': 'inferno',
+      '😢': 'spectral',
+      '😎': 'electric',
+      '🥰': 'phantom',
+      '🔥': 'blood',
+      '🌑': 'abyss',
+      '🌀': 'matrix'
     };
 
     function clearModalTextFields() {
@@ -672,6 +681,8 @@
       if (!text) return;
       const customInput = document.getElementById('customMoodInput').value.trim();
       const moodToUse = customInput || selectedScreamMood;
+      const moodTheme = moodToTheme[moodToUse] || 'abyss';
+      applyTheme(moodTheme);
       screams.unshift({
         id: Date.now(),
         alterIndex: currentAlterIndex,
@@ -720,6 +731,8 @@
         btn.onclick = () => {
           selectedScreamMood = m;
           document.getElementById('customMoodInput').value = '';
+          const moodTheme = moodToTheme[m] || 'abyss';
+          applyTheme(moodTheme);
           renderMoodPicker();
         };
         container.appendChild(btn);
@@ -1420,7 +1433,7 @@
       clearModalTextFields();
       if (!ensureCurrentAlter()) return;
       const header = document.getElementById('themeAlterName');
-      header.textContent = `${alters[currentAlterIndex].name}'S THEME`;
+      header.textContent = `${alters[currentAlterIndex].name}'S MOOD-BASED THEME`;
       const grid = document.getElementById('themeGrid');
       grid.innerHTML = '';
       const currentTheme = alters[currentAlterIndex].theme || 'abyss';
@@ -1429,13 +1442,14 @@
         const card = document.createElement('div');
         card.className = `theme-card ${key === currentTheme ? 'current' : ''}`;
         card.style.background = `linear-gradient(45deg, ${t.primary}, ${t.accent})`;
+        const moodForTheme = Object.keys(moodToTheme).find(m => moodToTheme[m] === key) || '🌑';
         card.innerHTML = `
-          <div style="font-size:32px;">◉</div>
+          <div style="font-size:32px;">${moodForTheme}</div>
           <div>${t.name}</div>
         `;
         card.onclick = () => {
           applyTheme(key);
-          openThemeModal(); // refresh to show new current
+          openThemeModal();
         };
         grid.appendChild(card);
       });
