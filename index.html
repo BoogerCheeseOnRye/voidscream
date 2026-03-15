@@ -823,6 +823,12 @@ function showAltersModal() {
     const hasPw = !!(alt.password && alt.password.hash);
     const isPersona = !!alt.isPersona;
     const status = alt.relationshipStatus || 'Single';
+    const pronouns = alt.pronouns || 'any terms';
+    let rolesHTML = '';
+    const roles = (alt.roles && alt.roles.length) ? alt.roles : ['frequent fronter'];
+    for (let r = 0; r < roles.length; r++) {
+      rolesHTML += `<span class="px-5 py-1 text-xs rounded-3xl font-medium mx-1" style="background:${alt.color}40;color:${alt.color}">${roles[r]}</span>`;
+    }
     const div = document.createElement('div');
     div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer transition-all ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'} ${unread > 0 ? 'ring-2 ring-offset-2 ring-offset-black animate-pulse' : ''}`;
     div.style.boxShadow = unread > 0 ? `0 0 20px ${alt.color}` : 'none';
@@ -835,13 +841,8 @@ function showAltersModal() {
       <div class="flex-1">
         <div class="font-bold">${alt.name}${isPersona ? ' <span class="gemma-badge">GEMMA ECHO</span>' : ''}</div>
         <div class="text-xs neon-cyan">${alt.handle} • ${status}</div>
-        <select onchange="updateRelationshipStatus(${i}, this.value)" class="bg-transparent text-xs neon-cyan border-b border-cyan-400 outline-none">
-          <option value="Single" ${status==='Single'?'selected':''}>Single</option>
-          <option value="Bonded" ${status==='Bonded'?'selected':''}>Bonded</option>
-          <option value="Strained" ${status==='Strained'?'selected':''}>Strained</option>
-          <option value="Coupled" ${status==='Coupled'?'selected':''}>Coupled</option>
-          <option value="Complicated" ${status==='Complicated'?'selected':''}>Complicated</option>
-        </select>
+        <div class="text-sm opacity-75">${pronouns}</div>
+        <div class="flex flex-wrap gap-2 mt-3">${rolesHTML}</div>
       </div>
       ${badgeHTML}
       ${hasPw ? `<i onclick="event.stopImmediatePropagation()" class="fa fa-lock text-red-400"></i>` : ''}
@@ -849,7 +850,6 @@ function showAltersModal() {
         <label class="cursor-pointer"><i class="fa fa-camera text-2xl neon-cyan"></i><input type="file" accept="image/*" onchange="uploadAvatar(${i}, event)" class="hidden"></label>
         <button onclick="openFeedbackModal(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-lime border border-lime-400 rounded-3xl">FEEDBACK</button>
         <button onclick="setAlterPassword(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-lime border border-lime-400 rounded-3xl">PASSWORD</button>
-        <button onclick="createEchoClone(${i}); event.stopImmediatePropagation()" class="text-xs px-4 py-2 neon-purple border border-purple-400 rounded-3xl">ECHO CLONE</button>
         <button onclick="killAlter(${i}); event.stopImmediatePropagation()" class="text-red-400"><i class="fa fa-trash"></i></button>
       </div>
     `;
