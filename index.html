@@ -1147,31 +1147,37 @@
       menu.classList.toggle('show');
       updateDMNotificationBadge();
     }
-    function openDMModal() {
-      if (!ensureCurrentAlter()) return;
-      toggleHubMenu();
-      checkPassword(() => {
-        const list = document.getElementById('dmAltersList');
-        list.innerHTML = '';
-        alters.forEach((alt, i) => {
-          if (i === currentAlterIndex) return;
-          const unread = unreadNotifications[i] || 0;
-          const btn = document.createElement('div');
-          btn.className = 'flex items-center gap-4 p-4 rounded-3xl cursor-pointer hover:bg-zinc-800';
-          btn.innerHTML = `
-            <img src="${alt.avatar}" class="w-12 h-12 rounded-2xl border-2" style="border-color:${alt.color}">
-            <div class="flex-1"><div class="font-bold">${alt.name}</div><div class="text-xs neon-cyan">${alt.handle}</div></div>
-            ${unread > 0 ? `<div class="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">${unread}</div>` : ''}
-          `;
-          btn.onclick = () => openDMChat(i);
-          list.appendChild(btn);
-        });
-        document.getElementById('dmHubModal').classList.remove('hidden');
-      });
-    }
-    function closeDMHub() {
-      document.getElementById('dmHubModal').classList.add('hidden');
-    }
+   function openDMModal() {
+  if (!ensureCurrentAlter()) return;
+  toggleHubMenu();
+  checkPassword(() => {
+    const list = document.getElementById('dmAltersList');
+    list.innerHTML = '';
+    alters.forEach((alt, i) => {
+      if (i === currentAlterIndex) return;
+      const a = currentAlterIndex;
+      const b = i;
+      const key = `${Math.min(a,b)}-${Math.max(a,b)}`; // canonical sync
+      const unread = unreadNotifications[i] || 0;
+      const salt = alt.id || i + 'voidsalt';
+      const sealedCount = btoa(unread + salt); // per-alter void-key sealing
+      const btn = document.createElement('div');
+      btn.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer transition-all ${unread > 0 ? 'ring-2 ring-offset-2 ring-offset-black animate-pulse' : ''}`;
+      btn.style.boxShadow = unread > 0 ? `0 0 20px ${alt.color}` : 'none';
+      btn.innerHTML = `
+        <img src="${alt.avatar}" class="w-12 h-12 rounded-2xl border-2" style="border-color:${alt.color}">
+        <div class="flex-1">
+          <div class="font-bold">${alt.name}</div>
+          <div class="text-xs opacity-60">from ${alt.name}</div>
+        </div>
+        ${unread > 0 ? `<div class="px-4 py-1 rounded-3xl text-xs font-black flex items-center gap-2" style="background:${alt.color}; color:#0a001f;">● ${unread}</div>` : ''}
+      `;
+      btn.onclick = () => openDMChat(i);
+      list.appendChild(btn);
+    });
+    document.getElementById('dmHubModal').classList.remove('hidden');
+  });
+}
  function openDMChat(targetIndex) {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
@@ -1254,15 +1260,16 @@ async function sendDM() {
   }
 }
     function updateDMNotificationBadge() {
-      const unreadForCurrent = unreadNotifications[currentAlterIndex] || 0;
-      const badge = document.getElementById('dmBadge');
-      if (unreadForCurrent > 0) {
-        badge.textContent = unreadForCurrent > 99 ? '99+' : unreadForCurrent;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-    }
+  const unreadForCurrent = unreadNotifications[currentAlterIndex] || 0;
+  const badge = document.getElementById('dmBadge');
+  if (unreadForCurrent > 0) {
+    badge.textContent = unreadForCurrent > 99 ? '99+' : unreadForCurrent;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+  // all calls already guarded by ensureCurrentAlter()
+}
     // COUNSELOR DM (ethical + couples support)
     async function openCounselorDM() {
       if (!ensureCurrentAlter()) return;
