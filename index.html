@@ -804,10 +804,6 @@
         alert("Alter name cannot be empty");
         return;
       }
-      if (name.length < 2) {
-        alert("Alter name must be at least 2 characters");
-        return;
-      }
       const exists = alters.some(a => a.name.toLowerCase() === name.toLowerCase());
       if (exists) {
         alert("An alter with this name already exists");
@@ -1217,10 +1213,6 @@
       const name = document.getElementById('firstAlterName').value.trim();
       if (!name) {
         alert("Alter name cannot be empty");
-        return;
-      }
-      if (name.length < 2) {
-        alert("Alter name must be at least 2 characters");
         return;
       }
       const exists = alters.some(a => a.name.toLowerCase() === name.toLowerCase());
