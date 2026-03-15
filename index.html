@@ -7,8 +7,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <!-- GEMMA 3 270M WLLAMA (optimized) -->
-  <script src="https://cdn.jsdelivr.net/gh/ggerganov/wllama@latest/dist/wllama.js"></script>
-  <style>
+ <!-- wllama CDN disabled (MIME nosniff fix – Gemma now uses safe fallback only) -->
+<script>
+console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00ffff;font-weight:bold');
+</script>
     :root { --abyss: #0a001f; }
     html, body, .overflow-y-auto, #feed, #alters-list, #commentsList, #calendarGrid, #dmMessages { 
       scrollbar-width: none; 
@@ -811,7 +813,7 @@ function renderMoodPicker() {
       const el = document.getElementById('saveToggle');
       el.textContent = saveToThisAlterOnly ? "THIS ALTER ONLY" : "SYSTEM SHARE";
     }
-    function showAltersModal() {
+  function showAltersModal() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   const list = document.getElementById('alters-list');
@@ -819,10 +821,10 @@ function renderMoodPicker() {
   alters.forEach((alt, i) => {
     const a = currentAlterIndex;
     const b = i;
-    const key = `${Math.min(a,b)}-${Math.max(a,b)}`; // canonical sync
+    const key = `${Math.min(a,b)}-${Math.max(a,b)}`;
     const unread = unreadNotifications[i] || 0;
     const salt = alt.id || i + 'voidsalt';
-    const sealedCount = btoa(unread + salt); // per-alter void-key sealing
+    const sealedCount = btoa(unread + salt);
     const hasPw = !!(alt.password && alt.password.hash);
     const isPersona = !!alt.isPersona;
     const status = alt.relationshipStatus || 'Single';
@@ -1518,7 +1520,7 @@ async function sendDM() {
       renderFeed();
       closeNukeConfirm();
     }
-  function showGate2() {
+function showGate2() {
   clearModalTextFields();
   document.getElementById('gate1').classList.add('hidden');
   document.getElementById('gate2').classList.remove('hidden');
