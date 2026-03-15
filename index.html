@@ -449,11 +449,13 @@
       </div>
     </div>
   </div>
-  <!-- REFINED PASSWORD MODAL -->
+  <!-- PASSWORD MODAL (enhanced security) -->
   <div id="passwordModal" onclick="if(event.target.id==='passwordModal')cancelPassword()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[63]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto text-center">
       <div id="passwordModalTitle" class="neon-pink text-3xl font-black mb-6"></div>
-      <input id="passwordInput" type="password" placeholder="enter password" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-5 text-xl text-center neon-cyan mb-4">
+      <input id="passwordInput" type="password" placeholder="NEW PASSWORD" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-5 text-xl text-center neon-cyan mb-3">
+      <input id="passwordConfirm" type="password" placeholder="CONFIRM PASSWORD" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl px-6 py-5 text-xl text-center neon-cyan mb-3 hidden">
+      <div id="passwordStrength" class="text-xs neon-lime mb-4 text-left px-2"></div>
       <div onclick="togglePasswordVisibility()" class="cursor-pointer text-xs neon-lime mb-6">SHOW / HIDE</div>
       <div class="flex gap-4">
         <button onclick="cancelPassword()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">CANCEL</button>
@@ -529,6 +531,7 @@
     let feedbackTargetIndex = null;
     let pendingPasswordCallback = null;
     let currentPasswordAlter = null;
+    let isSettingPassword = false;
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
     const themes = {
       abyss: {primary: '#ff00cc', accent: '#00ffff', name: 'ABYSS'},
@@ -551,11 +554,28 @@
       '🌀': 'matrix'
     };
 
+    async function hashPassword(pw, salt) {
+      if (!pw) return '';
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pw + salt);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    function generateSalt() {
+      return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
     function clearModalTextFields() {
       const fields = [
         'screamText','customMoodInput','mediaUrl','replyText','replyMedia',
         'dmInput','eulogyText','newAlterName','archiveSharedInput',
-        'archivePrivateInput','firstAlterName','feedbackMessage','passwordInput'
+        'archivePrivateInput','firstAlterName','feedbackMessage',
+        'passwordInput','passwordConfirm'
       ];
       fields.forEach(id => {
         const el = document.getElementById(id);
@@ -753,7 +773,7 @@
       list.innerHTML = '';
       alters.forEach((alt, i) => {
         const unread = unreadNotifications[i] || 0;
-        const hasPw = !!alt.password;
+        const hasPw = !!(alt.password && alt.password.hash);
         const div = document.createElement('div');
         div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'}`;
         div.innerHTML = `
@@ -890,54 +910,78 @@
     function setAlterPassword(index) {
       if (!ensureCurrentAlter()) return;
       currentPasswordAlter = index;
-      pendingPasswordCallback = (pw) => {
-        alters[index].password = pw || null;
-        saveData();
-        showAltersModal();
+      isSettingPassword = true;
+      pendingPasswordCallback = (success) => {
+        if (success) showAltersModal();
       };
       document.getElementById('passwordModalTitle').textContent = 'SET PASSWORD';
-      document.getElementById('passwordInput').type = 'password';
+      document.getElementById('passwordInput').placeholder = 'NEW PASSWORD';
+      document.getElementById('passwordConfirm').classList.remove('hidden');
       document.getElementById('passwordModal').classList.remove('hidden');
       document.getElementById('passwordInput').focus();
     }
-    function checkPassword(onSuccess) {
+    async function checkPassword(onSuccess) {
       const alter = alters[currentAlterIndex];
-      if (!alter || !alter.password) {
+      if (!alter || !alter.password || !alter.password.hash) {
         onSuccess();
         return;
       }
       currentPasswordAlter = currentAlterIndex;
+      isSettingPassword = false;
       pendingPasswordCallback = onSuccess;
       document.getElementById('passwordModalTitle').textContent = 'ENTER PASSWORD';
-      document.getElementById('passwordInput').type = 'password';
+      document.getElementById('passwordInput').placeholder = 'ENTER PASSWORD';
+      document.getElementById('passwordConfirm').classList.add('hidden');
       document.getElementById('passwordModal').classList.remove('hidden');
       document.getElementById('passwordInput').focus();
     }
-    function submitPassword() {
+    async function submitPassword() {
       const input = document.getElementById('passwordInput');
+      const confirmInput = document.getElementById('passwordConfirm');
       const pw = input.value.trim();
+      const errorEl = document.getElementById('passwordError');
+      errorEl.classList.add('hidden');
+
       if (!pw) {
-        document.getElementById('passwordError').textContent = 'Password cannot be empty';
-        document.getElementById('passwordError').classList.remove('hidden');
+        errorEl.textContent = 'Password cannot be empty';
+        errorEl.classList.remove('hidden');
         return;
       }
+
       const alter = alters[currentPasswordAlter];
-      if (pendingPasswordCallback === null) {
-        // setting new password
-        if (pw) {
-          alter.password = pw;
-          saveData();
-          cancelPassword();
+
+      if (isSettingPassword) {
+        // Setting new password
+        const confirmPw = confirmInput.value.trim();
+        if (pw.length < 4) {
+          errorEl.textContent = 'Minimum 4 characters';
+          errorEl.classList.remove('hidden');
+          return;
         }
+        if (pw !== confirmPw) {
+          errorEl.textContent = 'Passwords do not match';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        const salt = alter.password && alter.password.salt ? alter.password.salt : generateSalt();
+        const hash = await hashPassword(pw, salt);
+        alter.password = { hash, salt };
+        saveData();
+        cancelPassword();
+        if (pendingPasswordCallback) pendingPasswordCallback(true);
       } else {
-        // entering password
-        if (pw === alter.password) {
+        // Verifying password
+        if (!alter.password || !alter.password.salt) {
           cancelPassword();
-          pendingPasswordCallback();
-          pendingPasswordCallback = null;
+          return;
+        }
+        const enteredHash = await hashPassword(pw, alter.password.salt);
+        if (enteredHash === alter.password.hash) {
+          cancelPassword();
+          if (pendingPasswordCallback) pendingPasswordCallback();
         } else {
-          document.getElementById('passwordError').textContent = 'Incorrect password';
-          document.getElementById('passwordError').classList.remove('hidden');
+          errorEl.textContent = 'Incorrect password';
+          errorEl.classList.remove('hidden');
         }
       }
     }
@@ -945,11 +989,16 @@
       document.getElementById('passwordModal').classList.add('hidden');
       document.getElementById('passwordError').classList.add('hidden');
       document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordConfirm').value = '';
+      document.getElementById('passwordConfirm').classList.add('hidden');
       pendingPasswordCallback = null;
+      isSettingPassword = false;
     }
     function togglePasswordVisibility() {
-      const input = document.getElementById('passwordInput');
-      input.type = input.type === 'password' ? 'text' : 'password';
+      const inputs = [document.getElementById('passwordInput'), document.getElementById('passwordConfirm')];
+      inputs.forEach(input => {
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
+      });
     }
     function viewMedia(url) {
       const container = document.getElementById('mediaContainer');
@@ -1080,7 +1129,7 @@
     function openDMModal() {
       if (!ensureCurrentAlter()) return;
       toggleHubMenu();
-      if (!checkPassword(() => {
+      checkPassword(() => {
         const list = document.getElementById('dmAltersList');
         list.innerHTML = '';
         alters.forEach((alt, i) => {
@@ -1097,7 +1146,7 @@
           list.appendChild(btn);
         });
         document.getElementById('dmHubModal').classList.remove('hidden');
-      })) return;
+      });
     }
     function closeDMHub() {
       document.getElementById('dmHubModal').classList.add('hidden');
@@ -1168,13 +1217,13 @@
     function openCalendarModal() {
       clearModalTextFields();
       if (!ensureCurrentAlter()) return;
-      if (!checkPassword(() => {
+      checkPassword(() => {
         calendarMode = 'alter';
         document.getElementById('calendarModeBtn').textContent = 'ALTER MODE';
         renderCalendar();
         drawCalendarMoodGraph();
         document.getElementById('calendarModal').classList.remove('hidden');
-      })) return;
+      });
     }
     function closeCalendarModal() {
       document.getElementById('calendarModal').classList.add('hidden');
