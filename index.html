@@ -132,24 +132,24 @@
     .mood-btn.selected { transform: scale(1.4); }
     canvas { image-rendering: crisp-edges; }
     .theme-card { 
-      width: 96px; height: 118px; border-radius: 18px; cursor: pointer; transition: all 0.3s; 
-      box-shadow: 0 0 15px currentColor; display: flex; flex-direction: column; align-items: center; 
-      justify-content: center; font-size: 11px; font-weight: 900; color: #0a001f; gap: 6px; position: relative;
+      width: 108px; height: 128px; border-radius: 24px; cursor: pointer; transition: all 0.3s; 
+      box-shadow: 0 0 20px currentColor; display: flex; flex-direction: column; align-items: center; 
+      justify-content: center; font-size: 12px; font-weight: 900; color: #0a001f; gap: 8px; position: relative;
     }
-    .theme-card:hover { transform: scale(1.12); }
+    .theme-card:hover { transform: scale(1.08); }
     .theme-card.current { 
-      box-shadow: 0 0 25px #00ffff, 0 0 40px #ff00cc; 
-      border: 3px solid #00ffff; 
+      box-shadow: 0 0 30px #00ffff, 0 0 50px #ff00cc; 
+      border: 4px solid #00ffff; 
     }
     .theme-card.current::after {
       content: 'CURRENT';
       position: absolute;
-      top: 4px;
-      right: 4px;
+      top: 6px;
+      right: 6px;
       background: #00ffff;
       color: #0a001f;
-      font-size: 8px;
-      padding: 1px 6px;
+      font-size: 9px;
+      padding: 2px 8px;
       border-radius: 9999px;
       font-weight: 900;
     }
@@ -451,14 +451,14 @@
   </div>
   <!-- REFINED MOOD-BASED THEME MODAL -->
   <div id="themeModal" onclick="if(event.target.id==='themeModal')closeThemeModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[62]">
-    <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+    <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-8 overflow-y-auto">
       <div class="flex justify-between items-center mb-6">
         <div id="themeAlterName" class="neon-pink text-3xl font-black"></div>
         <button onclick="closeThemeModal()" class="text-4xl neon-cyan">×</button>
       </div>
       <div class="neon-lime text-xs mb-6 text-center">MOOD-BASED THEMES • LIVE PREVIEW</div>
-      <div id="themeGrid" class="grid grid-cols-3 gap-6"></div>
-      <button onclick="resetTheme()" class="mt-8 w-full py-5 border-2 border-zinc-700 rounded-3xl text-sm neon-cyan">RESET TO DEFAULT ABYSS</button>
+      <div id="themeGrid" class="grid grid-cols-3 gap-8"></div>
+      <button onclick="resetTheme()" class="mt-10 w-full py-6 border-2 border-zinc-700 rounded-3xl text-sm neon-cyan">RESET TO DEFAULT ABYSS</button>
     </div>
   </div>
   <!-- NUKE MODAL -->
@@ -1440,7 +1440,7 @@
         card.style.background = `linear-gradient(45deg, ${t.primary}, ${t.accent})`;
         const moodForTheme = Object.keys(moodToTheme).find(m => moodToTheme[m] === key) || '🌑';
         card.innerHTML = `
-          <div style="font-size:42px;">${moodForTheme}</div>
+          <div style="font-size:48px; line-height:1;">${moodForTheme}</div>
           <div>${t.name}</div>
         `;
         card.onclick = () => {
