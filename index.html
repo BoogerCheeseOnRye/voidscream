@@ -823,7 +823,11 @@ function showAltersModal() {
     const isPersona = !!alt.isPersona;
     const status = alt.relationshipStatus || 'Single';
     const pronouns = alt.pronouns || 'any terms';
-    const roles = (alt.roles && alt.roles.length) ? alt.roles : ['frequent fronter'];
+    let rolesHTML = '';
+    const roles = alt.roles || ['frequent fronter'];
+    roles.forEach(r => {
+      rolesHTML += `<span class="px-5 py-1 text-xs rounded-3xl font-medium mx-1" style="background:${alt.color}40;color:${alt.color}">${r}</span>`;
+    });
     const div = document.createElement('div');
     div.className = `alter-card p-6 rounded-3xl cursor-pointer transition-all mb-6 shadow-xl ${i === currentAlterIndex ? 'ring-4 ring-offset-4 ring-offset-black scale-105' : 'hover:scale-102'}`;
     div.style.background = `linear-gradient(145deg, ${alt.color}20, transparent)`;
@@ -838,9 +842,7 @@ function showAltersModal() {
           </div>
           <div class="text-xl opacity-90">${alt.handle || ''}</div>
           <div class="text-sm opacity-75 mt-1">${pronouns}</div>
-          <div class="flex flex-wrap gap-2 mt-4">
-            ${roles.map(r => `<span class="px-5 py-1 text-xs rounded-3xl font-medium" style="background:${alt.color}40;color:${alt.color}">${r}</span>`).join('')}
-          </div>
+          <div class="flex flex-wrap gap-2 mt-4">${rolesHTML}</div>
         </div>
         <div class="text-right self-start">
           ${unread > 0 ? `<div class="px-5 py-2 rounded-3xl text-xs font-black" style="background:${alt.color};color:#0a001f;">${unread}</div>` : ''}
@@ -861,7 +863,15 @@ function showAltersModal() {
     archiveHeader.className = 'neon-lime text-xs mt-8 mb-3 px-4';
     archiveHeader.textContent = 'MEMORY ARCHIVES';
     list.appendChild(archiveHeader);
-    // archive cards unchanged
+    archives.forEach((arch, idx) => {
+      const aDiv = document.createElement('div');
+      aDiv.className = 'flex items-center gap-4 p-4 rounded-3xl cursor-pointer hover:bg-zinc-800 border border-pink-400/30';
+      aDiv.innerHTML = `
+        <div class="flex-1"><div class="font-bold">${arch.name}</div><div class="text-xs neon-pink">departed</div></div>
+      `;
+      aDiv.onclick = () => openMemoryArchive(idx);
+      list.appendChild(aDiv);
+    });
   }
   setTimeout(drawMoodGraph, 100);
   document.getElementById('altersModal').classList.remove('hidden');
