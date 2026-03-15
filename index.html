@@ -8,21 +8,21 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
   <style>
     :root { --abyss: #0a001f; }
-    html, body, .overflow-y-auto, #feed, #alters-list, #commentsList, #calendarGrid, #dmMessages { 
-      scrollbar-width: none; 
-      -ms-overflow-style: none; 
+    html, body, .overflow-y-auto, #feed, #alters-list, #commentsList, #calendarGrid, #dmMessages {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
-    html::-webkit-scrollbar, body::-webkit-scrollbar, .overflow-y-auto::-webkit-scrollbar, 
-    #feed::-webkit-scrollbar, #alters-list::-webkit-scrollbar, #commentsList::-webkit-scrollbar, 
+    html::-webkit-scrollbar, body::-webkit-scrollbar, .overflow-y-auto::-webkit-scrollbar,
+    #feed::-webkit-scrollbar, #alters-list::-webkit-scrollbar, #commentsList::-webkit-scrollbar,
     #calendarGrid::-webkit-scrollbar, #dmMessages::-webkit-scrollbar { display: none; }
-    body { 
-      background: var(--abyss); 
-      font-family: system-ui, sans-serif; 
-      height: 100dvh; 
-      overflow: hidden; 
-      display: flex; 
-      flex-direction: column; 
-      margin: 0; 
+    body {
+      background: var(--abyss);
+      font-family: system-ui, sans-serif;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
       position: relative;
     }
     @media (orientation: portrait) {
@@ -34,20 +34,20 @@
     .neon-pink { color: #ff00cc; text-shadow: 0 0 12px #ff00cc, 0 0 24px #ff00cc; }
     .neon-cyan { color: #00ffff; text-shadow: 0 0 12px #00ffff, 0 0 24px #00ffff; }
     .neon-lime { color: #ccff00; text-shadow: 0 0 10px #ccff00, 0 0 20px #ccff00; }
-    .cyber-header { 
-      text-align: center; 
-      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem; 
-      border-bottom: 2px solid #00ffff; 
-      box-shadow: 0 0 15px #00ffff; 
-      background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent); 
-      flex-shrink: 0; 
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      padding-left: 1rem; 
-      padding-right: 1rem; 
+    .cyber-header {
+      text-align: center;
+      padding: max(1rem, env(safe-area-inset-top)) 1rem 0.75rem;
+      border-bottom: 2px solid #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+      background: linear-gradient(to bottom, rgba(10, 0, 31, 0.95), transparent);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
-    .card { background: #1a0033; border: 2px solid #ff00cc88; box-shadow: 0 0 10px #ff00cc88; transition: all 0.3s ease; }
+    .card { background: #1a0033; border: 2px solid #ff00cc88; box-shadow: 0 0 20px #ff00cc, 0 0 40px #00ffff; transition: all 0.3s ease; }
     .post:hover { box-shadow: 0 0 20px #00ffff88; transform: translateY(-4px); }
     .floating-hub {
       width: 64px; height: 64px;
@@ -116,10 +116,8 @@
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
-
   <!-- ABYSS FALL LAYER -->
   <div id="abyss-fall"></div>
-
   <!-- GATE 1 -->
   <div id="gate1" class="fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
@@ -132,7 +130,6 @@
       <p class="text-[10px] text-zinc-500 mt-8">Single HTML file. Nothing leaves your device. No servers. No external access possible.</p>
     </div>
   </div>
-
   <!-- GATE 2 -->
   <div id="gate2" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
     <div class="card rounded-3xl p-8 max-w-md text-center mx-4">
@@ -151,10 +148,9 @@
       </div>
     </div>
   </div>
-
   <!-- GATE 3: FIRST ALTER -->
   <div id="gate3" class="hidden fixed inset-0 bg-black/100 flex items-center justify-center z-[200]">
-    <div onclick="event.stopImmediatePropagation()" class="card rounded-3xl p-8 max-w-md mx-4 text-center">
+    <div onclick="event.stopImmediatePropagation()" class="card rounded-3xl p-8 max-w-md text-center mx-4">
       <h2 class="neon-pink text-3xl font-black mb-6">CREATE YOUR FIRST ALTER</h2>
       <p class="neon-cyan text-sm mb-8">This is your system. Give them a name and a face. Everything stays local forever.</p>
       <div class="mb-6">
@@ -174,7 +170,6 @@
       </div>
     </div>
   </div>
-
   <!-- MAIN APP -->
   <div id="app" class="hidden flex flex-col h-full">
     <!-- HEADER -->
@@ -190,17 +185,14 @@
         <span class="neon-lime text-xs font-bold">THE FORGOTTEN</span>
       </div>
     </div>
-
     <!-- FEED -->
     <div id="feed-container" class="flex-1 overflow-y-auto p-4 space-y-6 bg-[#0a001f]">
       <div id="feed" class="space-y-6"></div>
     </div>
-
     <!-- HUB BUTTON -->
     <button onclick="toggleHubMenu()" id="hubBtn" class="floating-hub">
       <i class="fa fa-plus"></i>
     </button>
-
     <!-- HUB MENU -->
     <div id="hubMenu" class="hub-menu">
       <button onclick="openScreamModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-plus"></i></button>
@@ -208,7 +200,6 @@
       <button onclick="openDMModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-envelope"></i></button>
     </div>
   </div>
-
   <!-- SCREAM COMPOSER MODAL -->
   <div id="screamModal" onclick="if(event.target.id==='screamModal')closeScreamModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[55]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -238,7 +229,6 @@
       </div>
     </div>
   </div>
-
   <!-- REPLY COMPOSER MODAL -->
   <div id="replyModal" onclick="if(event.target.id==='replyModal')closeReplyModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[56]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -257,7 +247,6 @@
       </div>
     </div>
   </div>
-
   <!-- ALTERS MODAL (fixed rigid layout) -->
   <div id="altersModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 flex flex-col overflow-hidden">
@@ -265,23 +254,22 @@
         <div class="neon-pink text-2xl font-black">MY SYSTEM</div>
         <button onclick="closeAltersModal()" class="text-4xl neon-cyan">×</button>
       </div>
-      
+     
       <!-- Rigid scrollable alter list (6 high) -->
       <div id="alters-list" class="flex-1 overflow-y-auto space-y-2 pr-2"></div>
-      
+     
       <!-- Locked bottom section -->
       <div class="mt-auto pt-6 border-t border-cyan-400/30">
         <div class="neon-lime text-xs mb-3 text-center">THIS WEEK'S MOOD TRACKER</div>
         <canvas id="moodGraph" width="280" height="80" class="mx-auto"></canvas>
       </div>
-      
+     
       <div class="mt-6 flex-shrink-0">
         <input id="newAlterName" placeholder="new alter name" class="w-full bg-[#0f0022] border border-cyan-400 rounded-3xl p-4 text-sm">
         <button onclick="addNewAlter()" class="mt-3 w-full py-4 bg-purple-600 text-white rounded-3xl">ADD ALTER</button>
       </div>
     </div>
   </div>
-
   <!-- DM HUB MODAL -->
   <div id="dmHubModal" onclick="if(event.target.id==='dmHubModal')closeDMHub()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[65]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -292,7 +280,6 @@
       <div id="dmAltersList" class="space-y-3"></div>
     </div>
   </div>
-
   <!-- DM CHAT MODAL -->
   <div id="dmChatModal" onclick="if(event.target.id==='dmChatModal')closeDMChat()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[66]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -307,7 +294,6 @@
       </div>
     </div>
   </div>
-
   <!-- SCREAM DETAIL MODAL -->
   <div id="screamDetailModal" onclick="if(event.target.id==='screamDetailModal')closeScreamDetail()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[70]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -326,7 +312,6 @@
       </div>
     </div>
   </div>
-
   <!-- MEDIA VIEWER -->
   <div id="mediaModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[80]">
     <div onclick="if(event.target.id==='mediaModal')closeMediaModal()" class="modal-full card rounded-3xl p-4 flex flex-col">
@@ -336,7 +321,6 @@
       <div id="mediaContainer" class="flex-1"></div>
     </div>
   </div>
-
   <!-- CALENDAR MODAL -->
   <div id="calendarModal" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -371,7 +355,6 @@
       </div>
     </div>
   </div>
-
   <!-- NUKE MODAL -->
   <div id="nukeModal" onclick="if(event.target.id==='nukeModal')closeNukeModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-8 overflow-y-auto text-center">
@@ -387,7 +370,6 @@
       <button onclick="closeNukeModal()" class="mt-8 w-full py-4 border-2 border-zinc-700 rounded-3xl text-sm">CANCEL</button>
     </div>
   </div>
-
   <!-- NUKE CONFIRMATION -->
   <div id="nukeConfirmModal" onclick="if(event.target.id==='nukeConfirmModal')closeNukeConfirm()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[70]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-8 overflow-y-auto text-center">
@@ -399,7 +381,6 @@
       </div>
     </div>
   </div>
-
   <script>
     tailwind.config = { darkMode: 'class' };
     let screams = [];
@@ -417,9 +398,7 @@
     let dmMessages = {};
     let unreadNotifications = {};
     let calendarMode = 'alter';
-
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
-
     function loadData() {
       if (localStorage.getItem('voidscreams')) screams = JSON.parse(localStorage.getItem('voidscreams'));
       else screams = [];
@@ -433,7 +412,6 @@
       else unreadNotifications = {};
       if (alters.length > 0) currentAlterIndex = 0;
     }
-
     function saveData() {
       localStorage.setItem('voidscreams', JSON.stringify(screams));
       localStorage.setItem('voidalters', JSON.stringify(alters));
@@ -441,7 +419,6 @@
       localStorage.setItem('voidDMs', JSON.stringify(dmMessages));
       localStorage.setItem('voidNotifications', JSON.stringify(unreadNotifications));
     }
-
     function createFalling() {
       const container = document.getElementById('abyss-fall');
       const symbols = ['🕳️','☠️','💀','🌀','👁️'];
@@ -456,7 +433,6 @@
         particles.push(el);
       }
     }
-
     function renderFeed() {
       const feed = document.getElementById('feed');
       feed.innerHTML = '';
@@ -508,7 +484,6 @@
         feed.appendChild(card);
       });
     }
-
     function vote(id, dir) {
       const s = screams.find(x => x.id === id);
       if (!s) return;
@@ -523,7 +498,6 @@
       saveData();
       renderFeed();
     }
-
     function postScream() {
       const text = document.getElementById('screamText').value.trim();
       let media = document.getElementById('mediaUrl').value.trim();
@@ -546,7 +520,6 @@
       renderFeed();
       closeScreamModal();
     }
-
     function openScreamModal() {
       if (alters.length === 0) return;
       updateComposerUI();
@@ -555,11 +528,10 @@
       document.getElementById('screamModal').classList.remove('hidden');
       setTimeout(() => { document.getElementById('screamText').focus(); }, 100);
     }
-    function closeScreamModal() { 
+    function closeScreamModal() {
       document.getElementById('screamModal').classList.add('hidden');
       selectedScreamMood = '🌑';
     }
-
     function updateComposerUI() {
       if (alters.length === 0) return;
       const alter = alters[currentAlterIndex];
@@ -567,7 +539,6 @@
       document.getElementById('composer-avatar').style.borderColor = alter.color;
       document.getElementById('composer-name').textContent = alter.name;
     }
-
     function renderMoodPicker() {
       const container = document.getElementById('moodPicker');
       container.innerHTML = '';
@@ -583,7 +554,6 @@
         container.appendChild(btn);
       });
     }
-
     function showAltersModal() {
       const list = document.getElementById('alters-list');
       list.innerHTML = '';
@@ -607,7 +577,6 @@
       document.getElementById('altersModal').classList.remove('hidden');
     }
     function closeAltersModal() { document.getElementById('altersModal').classList.add('hidden'); }
-
     function drawMoodGraph() {
       const canvas = document.getElementById('moodGraph');
       if (!canvas) return;
@@ -637,7 +606,6 @@
       ctx.lineTo(140, 70);
       ctx.stroke();
     }
-
     function uploadAvatar(index, e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -662,7 +630,6 @@
       };
       reader.readAsDataURL(file);
     }
-
     function killAlter(index) {
       if (alters.length <= 1) return alert("You need at least one alter");
       if (confirm("Kill this alter forever?")) {
@@ -672,7 +639,6 @@
         showAltersModal();
       }
     }
-
     function addNewAlter() {
       const name = document.getElementById('newAlterName').value.trim();
       if (!name) return;
@@ -681,7 +647,6 @@
       document.getElementById('newAlterName').value = '';
       showAltersModal();
     }
-
     function viewMedia(url) {
       const container = document.getElementById('mediaContainer');
       const ext = url.toLowerCase();
@@ -693,7 +658,6 @@
       document.getElementById('mediaModal').classList.remove('hidden');
     }
     function closeMediaModal() { document.getElementById('mediaModal').classList.add('hidden'); }
-
     function openScreamDetail(id) {
       currentDetailPostId = id;
       const post = screams.find(s => s.id === id);
@@ -736,7 +700,6 @@
     function closeScreamDetail() {
       document.getElementById('screamDetailModal').classList.add('hidden');
     }
-
     function togglePin(id) {
       const post = screams.find(s => s.id === id);
       if (!post) return;
@@ -748,7 +711,6 @@
       renderFeed();
       openScreamDetail(id);
     }
-
     function renderDetailComments() {
       const container = document.getElementById('detailComments');
       container.innerHTML = '';
@@ -776,7 +738,6 @@
         }
       });
     }
-
     function openReplyModal(commentIdx = null) {
       closeScreamDetail();
       document.getElementById('replyModal').classList.remove('hidden');
@@ -802,14 +763,12 @@
       openScreamDetail(currentDetailPostId);
       renderFeed();
     }
-
     function toggleHubMenu() {
       const menu = document.getElementById('hubMenu');
       const btn = document.getElementById('hubBtn');
       btn.classList.toggle('expanded');
       menu.classList.toggle('show');
     }
-
     function openDMModal() {
       toggleHubMenu();
       const list = document.getElementById('dmAltersList');
@@ -830,7 +789,6 @@
     function closeDMHub() {
       document.getElementById('dmHubModal').classList.add('hidden');
     }
-
     function openDMChat(targetIndex) {
       closeDMHub();
       currentDMTarget = targetIndex;
@@ -845,7 +803,6 @@
     function closeDMChat() {
       document.getElementById('dmChatModal').classList.add('hidden');
     }
-
     function renderDMChat() {
       const container = document.getElementById('dmMessages');
       container.innerHTML = '';
@@ -862,7 +819,6 @@
         container.appendChild(div);
       });
     }
-
     function sendDM() {
       const input = document.getElementById('dmInput');
       const text = input.value.trim();
@@ -876,14 +832,12 @@
       input.value = '';
       renderDMChat();
     }
-
     function toggleCalendarMode() {
       calendarMode = calendarMode === 'alter' ? 'system' : 'alter';
       const btn = document.getElementById('calendarModeBtn');
       btn.textContent = calendarMode === 'alter' ? 'ALTER MODE' : 'SYSTEM MODE';
       drawCalendarMoodGraph();
     }
-
     function openCalendarModal() {
       calendarMode = 'alter';
       document.getElementById('calendarModeBtn').textContent = 'ALTER MODE';
@@ -892,7 +846,6 @@
       document.getElementById('calendarModal').classList.remove('hidden');
     }
     function closeCalendarModal() { document.getElementById('calendarModal').classList.add('hidden'); }
-
     function drawCalendarMoodGraph() {
       const canvas = document.getElementById('calendarMoodGraph');
       if (!canvas) return;
@@ -916,11 +869,10 @@
         ctx.stroke();
       }
       const legend = document.getElementById('moodLegend');
-      legend.innerHTML = calendarMode === 'system' 
-        ? alters.slice(0,5).map((alt,i) => `<span style="color:${colors[i]}">● ${alt.name}</span>`).join(' ') 
+      legend.innerHTML = calendarMode === 'system'
+        ? alters.slice(0,5).map((alt,i) => `<span style="color:${colors[i]}">● ${alt.name}</span>`).join(' ')
         : `<span style="color:#ff00cc">● ${alters[currentAlterIndex] ? alters[currentAlterIndex].name : 'Current'}</span>`;
     }
-
     function renderCalendar() {
       const grid = document.getElementById('calendarGrid');
       grid.innerHTML = '';
@@ -965,7 +917,6 @@
       a.href = url; a.download = 'voidscream-moods.ics'; a.click();
       URL.revokeObjectURL(url);
     }
-
     function importICS(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -998,7 +949,6 @@
       };
       reader.readAsText(file);
     }
-
     function openNukeModal() {
       document.getElementById('nukeModal').classList.remove('hidden');
     }
@@ -1023,7 +973,6 @@
       renderFeed();
       closeNukeConfirm();
     }
-
     function showGate2() {
       document.getElementById('gate1').classList.add('hidden');
       document.getElementById('gate2').classList.remove('hidden');
@@ -1072,7 +1021,6 @@
       };
       reader.readAsDataURL(file);
     }
-
     function initApp() {
       loadData();
       renderFeed();
@@ -1081,7 +1029,6 @@
       feedCont.style.overflowY = 'auto';
       feedCont.style.height = 'calc(100vh - 120px)';
     }
-
     window.onload = () => {
       loadData();
       if (alters.length > 0) {
