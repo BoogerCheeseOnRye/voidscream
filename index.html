@@ -131,6 +131,8 @@
     .mood-btn { font-size: 28px; cursor: pointer; transition: transform 0.2s; }
     .mood-btn.selected { transform: scale(1.4); }
     canvas { image-rendering: crisp-edges; }
+    .theme-card { width: 68px; height: 68px; border-radius: 18px; cursor: pointer; transition: all 0.3s; box-shadow: 0 0 15px currentColor; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #0a001f; }
+    .theme-card:hover { transform: scale(1.15); }
   </style>
 </head>
 <body class="text-white h-[100dvh] overflow-hidden flex flex-col">
@@ -221,6 +223,7 @@
       <button onclick="openScreamModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-plus"></i></button>
       <button onclick="showAltersModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-users"></i></button>
       <button onclick="openDMModal();toggleHubMenu()" id="dmHubBtn" class="hub-menu-btn"><i class="fa fa-envelope"></i><span id="dmBadge" class="dm-badge hidden">0</span></button>
+      <button onclick="openThemeModal();toggleHubMenu()" class="hub-menu-btn"><i class="fa fa-palette"></i></button>
     </div>
   </div>
   <!-- SCREAM COMPOSER MODAL -->
@@ -426,6 +429,17 @@
       </div>
     </div>
   </div>
+  <!-- THEME MODAL (alter-specific) -->
+  <div id="themeModal" onclick="if(event.target.id==='themeModal')closeThemeModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[62]">
+    <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+      <div class="flex justify-between mb-6">
+        <div id="themeAlterName" class="neon-pink text-2xl font-black"></div>
+        <button onclick="closeThemeModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <div class="neon-lime text-xs mb-4 text-center">CHOOSE YOUR ALTER'S THEME</div>
+      <div id="themeGrid" class="grid grid-cols-3 gap-4"></div>
+    </div>
+  </div>
   <!-- NUKE MODAL -->
   <div id="nukeModal" onclick="if(event.target.id==='nukeModal')closeNukeModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-8 overflow-y-auto text-center">
@@ -492,6 +506,17 @@
     let saveToThisAlterOnly = true;
     let feedbackTargetIndex = null;
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
+    const themes = {
+      abyss: {primary: '#ff00cc', accent: '#00ffff', name: 'ABYSS'},
+      blood: {primary: '#ff0033', accent: '#aa0022', name: 'BLOOD'},
+      electric: {primary: '#00ccff', accent: '#0088ff', name: 'ELECTRIC'},
+      toxic: {primary: '#ccff00', accent: '#88ff00', name: 'TOXIC'},
+      phantom: {primary: '#cc00ff', accent: '#9900cc', name: 'PHANTOM'},
+      inferno: {primary: '#ff6600', accent: '#ff2200', name: 'INFERNO'},
+      spectral: {primary: '#dddddd', accent: '#aaaaaa', name: 'SPECTRAL'},
+      matrix: {primary: '#00ff44', accent: '#008822', name: 'MATRIX'},
+      chaos: {primary: '#ff00cc', accent: '#ccff00', name: 'CHAOS'}
+    };
 
     function clearModalTextFields() {
       const fields = [
@@ -662,6 +687,7 @@
       document.getElementById('composer-avatar').innerHTML = `<img src="${alter.avatar}" class="w-10 h-10 rounded-2xl object-cover">`;
       document.getElementById('composer-avatar').style.borderColor = alter.color;
       document.getElementById('composer-name').textContent = alter.name;
+      loadCurrentTheme();
     }
     function renderMoodPicker() {
       const container = document.getElementById('moodPicker');
@@ -809,7 +835,7 @@
         alert("An alter with this name already exists");
         return;
       }
-      alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa' });
+      alters.push({ id: Date.now(), name: name, handle: `@${name.toLowerCase().replace(/\s/g,'')}`, avatar: `https://picsum.photos/id/${Math.floor(Math.random()*300)}/128`, color: '#ff00aa', theme: 'abyss' });
       saveData();
       document.getElementById('newAlterName').value = '';
       showAltersModal();
@@ -1227,7 +1253,8 @@
         name: name,
         handle: `@${name.toLowerCase().replace(/\s/g,'')}`,
         avatar: avatar,
-        color: '#ff00aa'
+        color: '#ff00aa',
+        theme: 'abyss'
       }];
       saveData();
       currentAlterIndex = 0;
@@ -1367,6 +1394,47 @@
       renderFeed();
       alert("Feedback sent locally to the abyss.");
       closeFeedbackModal();
+    }
+    function openThemeModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      const header = document.getElementById('themeAlterName');
+      header.textContent = `${alters[currentAlterIndex].name}'S THEME`;
+      const grid = document.getElementById('themeGrid');
+      grid.innerHTML = '';
+      Object.keys(themes).forEach(key => {
+        const t = themes[key];
+        const card = document.createElement('div');
+        card.className = `theme-card`;
+        card.style.background = `linear-gradient(45deg, ${t.primary}, ${t.accent})`;
+        card.style.color = '#0a001f';
+        card.textContent = t.name;
+        card.onclick = () => {
+          applyTheme(key);
+          closeThemeModal();
+        };
+        grid.appendChild(card);
+      });
+      document.getElementById('themeModal').classList.remove('hidden');
+    }
+    function closeThemeModal() {
+      document.getElementById('themeModal').classList.add('hidden');
+    }
+    function applyTheme(themeKey) {
+      const t = themes[themeKey];
+      document.documentElement.style.setProperty('--neon-pink', t.primary);
+      document.documentElement.style.setProperty('--neon-cyan', t.accent);
+      if (alters[currentAlterIndex]) {
+        alters[currentAlterIndex].theme = themeKey;
+        saveData();
+      }
+    }
+    function loadCurrentTheme() {
+      if (alters[currentAlterIndex] && alters[currentAlterIndex].theme) {
+        applyTheme(alters[currentAlterIndex].theme);
+      } else {
+        applyTheme('abyss');
+      }
     }
     function initApp() {
       loadData();
