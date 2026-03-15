@@ -394,7 +394,24 @@
         <button onclick="confirmNuke(1440)" class="py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">1 DAY</button>
         <button onclick="confirmNuke(10080)" class="py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl col-span-2">1 WEEK</button>
       </div>
+      <div id="alterDeathSection" class="mt-8 hidden">
+        <button onclick="openAlterDeathModal()" class="w-full py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">ALTER DEATH / SEPARATION</button>
+      </div>
       <button onclick="closeNukeModal()" class="mt-8 w-full py-4 border-2 border-zinc-700 rounded-3xl text-sm">CANCEL</button>
+    </div>
+  </div>
+  <!-- ALTER DEATH EULOGY MODAL -->
+  <div id="alterDeathModal" onclick="if(event.target.id==='alterDeathModal')closeAlterDeathModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[71]">
+    <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <div class="neon-pink text-3xl font-black">EULOGY FOR DEPARTED ALTER</div>
+        <button onclick="closeAlterDeathModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <textarea id="eulogyText" rows="8" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-cyan resize-none" placeholder="They fought bravely in the shadows... They protected the system when no one else could..."></textarea>
+      <div class="flex gap-4 mt-8">
+        <button onclick="closeAlterDeathModal()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">NEVERMIND</button>
+        <button onclick="confirmAlterDeath()" class="flex-1 py-5 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">SEAL THEIR FATE</button>
+      </div>
     </div>
   </div>
   <!-- NUKE CONFIRMATION -->
@@ -426,6 +443,7 @@
     let unreadNotifications = {};
     let calendarMode = 'alter';
     let returnToModal = null;
+    let eulogyText = '';
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
     function loadData() {
       if (localStorage.getItem('voidscreams')) screams = JSON.parse(localStorage.getItem('voidscreams'));
@@ -586,7 +604,7 @@
       const list = document.getElementById('alters-list');
       list.innerHTML = '';
       alters.forEach((alt, i) => {
-        const unread = unreadNotifications[i] || 0;
+        const unread = (currentAlterIndex === 0) ? (unreadNotifications[i] || 0) : 0;
         const div = document.createElement('div');
         div.className = `flex items-center gap-4 p-4 rounded-3xl cursor-pointer ${i === currentAlterIndex ? 'bg-cyan-400/20 border border-cyan-400' : 'hover:bg-zinc-800'}`;
         div.innerHTML = `
@@ -1007,10 +1025,47 @@
       reader.readAsText(file);
     }
     function openNukeModal() {
+      const deathSection = document.getElementById('alterDeathSection');
+      deathSection.classList.toggle('hidden', currentAlterIndex !== 0);
       document.getElementById('nukeModal').classList.remove('hidden');
     }
     function closeNukeModal() {
       document.getElementById('nukeModal').classList.add('hidden');
+    }
+    function openAlterDeathModal() {
+      closeNukeModal();
+      document.getElementById('eulogyText').value = "They fought bravely in the shadows... They protected the system when no one else could...";
+      document.getElementById('alterDeathModal').classList.remove('hidden');
+    }
+    function closeAlterDeathModal() {
+      document.getElementById('alterDeathModal').classList.add('hidden');
+    }
+    function confirmAlterDeath() {
+      eulogyText = document.getElementById('eulogyText').value.trim() || "A quiet departure into the void.";
+      closeAlterDeathModal();
+      const listHTML = alters.map((alt, i) => i !== 0 ? `<button onclick="killAlterWithEulogy(${i});event.stopImmediatePropagation()" class="block w-full py-4 text-left px-6 hover:bg-zinc-800">${alt.name}</button>` : '').join('');
+      const tempConfirm = document.createElement('div');
+      tempConfirm.id = 'tempAlterConfirm';
+      tempConfirm.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:72;display:flex;align-items:center;justify-content:center;';
+      tempConfirm.innerHTML = `
+        <div class="modal-full card rounded-3xl p-8 text-center max-w-md">
+          <h2 class="neon-pink text-3xl font-black">CHOOSE THE DEPARTED</h2>
+          <p class="neon-cyan text-sm mt-4">${eulogyText}</p>
+          <div class="mt-8 space-y-2">${listHTML}</div>
+          <button onclick="document.getElementById('tempAlterConfirm').remove()" class="mt-8 w-full py-4 border-2 border-zinc-700 rounded-3xl">CANCEL</button>
+        </div>
+      `;
+      document.body.appendChild(tempConfirm);
+    }
+    function killAlterWithEulogy(index) {
+      const eulogyContainer = document.getElementById('tempAlterConfirm');
+      if (eulogyContainer) eulogyContainer.remove();
+      if (confirm(`Permanently separate ${alters[index].name}?`)) {
+        alters.splice(index, 1);
+        if (currentAlterIndex >= alters.length) currentAlterIndex = 0;
+        saveData();
+        showAltersModal();
+      }
     }
     function confirmNuke(minutes) {
       pendingNukeMinutes = minutes;
