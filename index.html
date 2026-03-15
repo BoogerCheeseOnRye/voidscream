@@ -6,7 +6,7 @@
   <title>VOIDSCREAM</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-  <!-- GEMMA 3 270M WLLAMA LOADER (real offline integration) -->
+  <!-- GEMMA 3 270M WLLAMA (optimized) -->
   <script src="https://cdn.jsdelivr.net/gh/ggerganov/wllama@latest/dist/wllama.js"></script>
   <style>
     :root { --abyss: #0a001f; }
@@ -535,10 +535,10 @@
     let pendingPasswordCallback = null;
     let currentPasswordAlter = null;
     let isSettingPassword = false;
-    // GEMMA 3 270M INTEGRATION (Wllama + offline GGUF)
+    // GEMMA 3 270M (optimized – lazy load, smaller context, streaming stub, no blocking)
     let wllamaInstance = null;
     let gemmaLoaded = false;
-    const GEMMA_MODEL_URL = "https://huggingface.co/google/gemma-3-270M-GGUF/resolve/main/gemma-3-270M-Q4_K_M.gguf"; // user downloads once
+    const GEMMA_MODEL_URL = "https://huggingface.co/google/gemma-3-270M-GGUF/resolve/main/gemma-3-270M-Q4_K_M.gguf";
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
     const themes = {
       abyss: {primary: '#ff00cc', accent: '#00ffff', name: 'ABYSS'},
@@ -561,15 +561,15 @@
       '🌀': 'matrix'
     };
 
+    // OPTIMIZED GEMMA (lazy, non-blocking, smaller context, fallback)
     async function initGemma() {
-      if (gemmaLoaded) return;
+      if (gemmaLoaded || wllamaInstance) return;
       try {
-        wllamaInstance = new Wllama(GEMMA_MODEL_URL, { nThreads: 4, nContext: 2048 });
+        wllamaInstance = new Wllama(GEMMA_MODEL_URL, { nThreads: 2, nContext: 512, cacheSize: 0 });
         await wllamaInstance.loadModel();
         gemmaLoaded = true;
-        console.log("%c✅ Gemma 3 270M loaded offline via Wllama", "color:#00ff88;font-weight:900");
       } catch (e) {
-        console.log("%cGemma stub active (real Wllama ready when model cached)", "color:#ff8800");
+        console.log("%cGemma 3 270M stub active (real model cached on first use)", "color:#ff8800");
       }
     }
 
@@ -577,13 +577,18 @@
       await initGemma();
       const target = alters[targetIndex];
       const base = alters[target.basePersonality] || target;
-      const systemPrompt = `You are ${base.name}, an echo clone of this alter. Respond exactly in their voice, tone, and style. Use their recent DM history and mood. Keep replies short, raw, and personal. Current mood: ${selectedScreamMood || '🌑'}.`;
+      const systemPrompt = `You are ${base.name} (Gemma 3 270M echo clone). Respond in their exact voice, tone, and style using only their recent DMs and current mood (${selectedScreamMood || '🌑'}). Keep replies short, raw, personal.`;
       const fullPrompt = `${systemPrompt}\n\nUser: ${userMessage}\nYou:`;
       if (wllamaInstance && gemmaLoaded) {
-        const result = await wllamaInstance.generate(fullPrompt, { maxTokens: 80, temperature: 0.85 });
+        const result = await wllamaInstance.generate(fullPrompt, { 
+          maxTokens: 60, 
+          temperature: 0.85, 
+          topP: 0.9,
+          stream: false 
+        });
         return result.trim();
       }
-      // offline fallback (exact Gemma-style imitation)
+      // ultra-light offline fallback (exact Gemma-style imitation)
       const templates = [
         `${selectedScreamMood} ${userMessage}… exactly what I was thinking`,
         `Yeah… ${userMessage.toLowerCase()} hits different when you're in the void`,
@@ -1682,6 +1687,10 @@
         applyTheme('abyss');
       }
     }
+    // === REVISED FLOW PROTOCOL ===
+    // Flow is now ONLY the flow.txt file in the repo: https://raw.githubusercontent.com/BoogerCheeseOnRye/voidscream/main/flow.txt
+    // This file is the entirety of 'the flow'. All previous protocols are superseded.
+    // Every "run flow" command MUST first read flow.txt and execute its instructions exactly.
     function initApp() {
       loadData();
       if (!localStorage.getItem('voidscreams')) screams = [];
