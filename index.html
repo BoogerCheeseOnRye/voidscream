@@ -132,9 +132,9 @@
     .mood-btn.selected { transform: scale(1.4); }
     canvas { image-rendering: crisp-edges; }
     .theme-card { 
-      width: 88px; height: 108px; border-radius: 18px; cursor: pointer; transition: all 0.3s; 
+      width: 96px; height: 118px; border-radius: 18px; cursor: pointer; transition: all 0.3s; 
       box-shadow: 0 0 15px currentColor; display: flex; flex-direction: column; align-items: center; 
-      justify-content: center; font-size: 11px; font-weight: 900; color: #0a001f; gap: 4px; position: relative;
+      justify-content: center; font-size: 11px; font-weight: 900; color: #0a001f; gap: 6px; position: relative;
     }
     .theme-card:hover { transform: scale(1.12); }
     .theme-card.current { 
@@ -1429,14 +1429,10 @@
       alert("Feedback sent locally to the abyss.");
       closeFeedbackModal();
     }
-    function openThemeModal() {
-      clearModalTextFields();
-      if (!ensureCurrentAlter()) return;
-      const header = document.getElementById('themeAlterName');
-      header.textContent = `${alters[currentAlterIndex].name}'S MOOD-BASED THEME`;
+    function renderThemeGrid() {
       const grid = document.getElementById('themeGrid');
       grid.innerHTML = '';
-      const currentTheme = alters[currentAlterIndex].theme || 'abyss';
+      const currentTheme = alters[currentAlterIndex] ? alters[currentAlterIndex].theme || 'abyss' : 'abyss';
       Object.keys(themes).forEach(key => {
         const t = themes[key];
         const card = document.createElement('div');
@@ -1444,15 +1440,22 @@
         card.style.background = `linear-gradient(45deg, ${t.primary}, ${t.accent})`;
         const moodForTheme = Object.keys(moodToTheme).find(m => moodToTheme[m] === key) || '🌑';
         card.innerHTML = `
-          <div style="font-size:32px;">${moodForTheme}</div>
+          <div style="font-size:42px;">${moodForTheme}</div>
           <div>${t.name}</div>
         `;
         card.onclick = () => {
           applyTheme(key);
-          openThemeModal();
+          renderThemeGrid();
         };
         grid.appendChild(card);
       });
+    }
+    function openThemeModal() {
+      clearModalTextFields();
+      if (!ensureCurrentAlter()) return;
+      const header = document.getElementById('themeAlterName');
+      header.textContent = `${alters[currentAlterIndex].name}'S MOOD-BASED THEME`;
+      renderThemeGrid();
       document.getElementById('themeModal').classList.remove('hidden');
     }
     function closeThemeModal() {
@@ -1469,7 +1472,7 @@
     }
     function resetTheme() {
       applyTheme('abyss');
-      closeThemeModal();
+      renderThemeGrid();
     }
     function loadCurrentTheme() {
       if (alters[currentAlterIndex] && alters[currentAlterIndex].theme) {
@@ -1480,6 +1483,7 @@
     }
     function initApp() {
       loadData();
+      if (!localStorage.getItem('voidscreams')) screams = [];
       ensureCurrentAlter();
       renderFeed();
       createFalling();
