@@ -290,6 +290,15 @@
       </div>
     </div>
   </div>
+<div id="themeModal" onclick="if(event.target.id==='themeModal')closeThemeModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
+  <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+    <div class="flex justify-between mb-6">
+      <div id="themeAlterName" class="neon-pink text-2xl font-black"></div>
+      <button onclick="closeThemeModal()" class="text-4xl neon-cyan">×</button>
+    </div>
+    <div id="themeGrid" class="grid grid-cols-3 gap-4"></div>
+  </div>
+</div>
   <!-- REPLY COMPOSER MODAL -->
   <div id="replyModal" onclick="if(event.target.id==='replyModal')closeReplyModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[56]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
@@ -768,27 +777,33 @@ function updateComposerUI() {
   const alter = alters[currentAlterIndex];
   document.getElementById('composer-avatar').innerHTML = `<img src="${alter.avatar}" class="w-10 h-10 rounded-2xl object-cover">`;
   document.getElementById('composer-avatar').style.borderColor = alter.color;
-  document.getElementById('composer-avatar').style.boxShadow = `0 0 20px ${alter.color}`;
-  document.getElementById('composer-name').textContent = alter.name;
+  document.getElementById('composer-name').textContent = `${alter.name} • ${alter.mood ? alter.mood : 'void'}`;
   loadCurrentTheme();
 }
     function renderMoodPicker() {
-      const container = document.getElementById('moodPicker');
-      container.innerHTML = '';
-      moodOptions.forEach(m => {
-        const btn = document.createElement('div');
-        btn.className = `mood-btn ${m === selectedScreamMood ? 'selected' : ''}`;
-        btn.textContent = m;
-        btn.onclick = () => {
-          selectedScreamMood = m;
-          document.getElementById('customMoodInput').value = '';
-          const moodTheme = moodToTheme[m] || 'abyss';
-          applyTheme(moodTheme);
-          renderMoodPicker();
-        };
-        container.appendChild(btn);
-      });
-    }
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  const container = document.getElementById('moodPicker');
+  container.innerHTML = '';
+  const alter = alters[currentAlterIndex];
+  moodOptions.forEach(m => {
+    const btn = document.createElement('div');
+    btn.className = `mood-btn ${m === (alter.mood || selectedScreamMood) ? 'selected' : ''}`;
+    btn.textContent = m;
+    btn.onclick = () => {
+      alter.mood = m;
+      const salt = alter.id || currentAlterIndex + 'voidsalt';
+      alter.sealedMood = btoa(m + salt);
+      selectedScreamMood = m;
+      document.getElementById('customMoodInput').value = '';
+      const moodTheme = moodToTheme[m] || 'abyss';
+      applyTheme(moodTheme);
+      renderMoodPicker();
+      saveData();
+    };
+    container.appendChild(btn);
+  });
+}
     function toggleSaveMode() {
       saveToThisAlterOnly = !saveToThisAlterOnly;
       const el = document.getElementById('saveToggle');
@@ -1672,28 +1687,27 @@ async function sendDM() {
     grid.appendChild(card);
   });
     function openThemeModal() {
-      clearModalTextFields();
-      if (!ensureCurrentAlter()) return;
-      const header = document.getElementById('themeAlterName');
-      header.textContent = `${alters[currentAlterIndex].name}'S MOOD-BASED THEME`;
-      renderThemeGrid();
-      document.getElementById('themeModal').classList.remove('hidden');
-    }
-    function closeThemeModal() {
-      document.getElementById('themeModal').classList.add('hidden');
-    }
+  clearModalTextFields();
+  if (!ensureCurrentAlter()) return;
+  const alter = alters[currentAlterIndex];
+  const header = document.getElementById('themeAlterName');
+  const currentMood = alter.mood ? alter.mood.toUpperCase() : 'VOID';
+  header.textContent = `${alter.name}'S MOOD: ${currentMood}`;
+  renderThemeGrid();
+  document.getElementById('themeModal').classList.remove('hidden');
+}
+
 function applyTheme(themeKey) {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   const t = themes[themeKey];
   const alter = alters[currentAlterIndex];
-  const primaryColor = alter ? alter.color : t.primary;
-  const salt = alter.id || currentAlterIndex + 'voidsalt';
-  const sealedPrimary = btoa(primaryColor + salt); // per-alter void-key sealing
-  document.documentElement.style.setProperty('--neon-pink', primaryColor);
+  document.documentElement.style.setProperty('--neon-pink', t.primary);
   document.documentElement.style.setProperty('--neon-cyan', t.accent);
   if (alter) {
     alter.theme = themeKey;
+    const suggestedMood = Object.keys(moodToTheme).find(m => moodToTheme[m] === themeKey);
+    if (suggestedMood && !alter.mood) alter.mood = suggestedMood;
     saveData();
   }
 }
@@ -1701,7 +1715,7 @@ function applyTheme(themeKey) {
       applyTheme('abyss');
       renderThemeGrid();
     }
-   function loadCurrentTheme() {
+  function loadCurrentTheme() {
   clearModalTextFields();
   if (!ensureCurrentAlter()) return;
   if (alters[currentAlterIndex] && alters[currentAlterIndex].theme) {
