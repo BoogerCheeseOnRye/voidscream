@@ -382,6 +382,39 @@
       </div>
     </div>
   </div>
+  <!-- MEMORY ARCHIVE MODAL -->
+  <div id="memoryArchiveModal" onclick="if(event.target.id==='memoryArchiveModal')closeMemoryArchiveModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[75]">
+    <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-6 overflow-y-auto">
+      <div class="flex justify-between mb-6">
+        <div id="archiveAlterName" class="neon-pink text-3xl font-black"></div>
+        <button onclick="closeMemoryArchiveModal()" class="text-4xl neon-cyan">×</button>
+      </div>
+      <!-- EULOGY -->
+      <div id="archiveEulogy" class="bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-6 mb-6 text-sm neon-cyan"></div>
+      <!-- SHARED CHAT -->
+      <div class="mb-6">
+        <div class="neon-lime text-xs mb-3">SHARED SYSTEM MEMORY CHAT</div>
+        <div id="archiveSharedChat" class="h-48 overflow-y-auto bg-[#0a001f] border border-cyan-400/30 rounded-3xl p-4 space-y-3 text-sm"></div>
+        <div class="flex gap-3 mt-3">
+          <input id="archiveSharedInput" type="text" placeholder="add shared memory..." class="flex-1 bg-[#0f0022] border-2 border-cyan-400 rounded-3xl px-6 py-4 text-sm neon-cyan">
+          <button onclick="postArchiveShared()" class="px-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">SHARE</button>
+        </div>
+      </div>
+      <!-- PRIVATE DM -->
+      <div>
+        <div class="neon-lime text-xs mb-3">PRIVATE ARCHIVE DM (with this alter)</div>
+        <div id="archivePrivateDM" class="h-48 overflow-y-auto bg-[#0a001f] border border-pink-400/30 rounded-3xl p-4 space-y-3 text-sm"></div>
+        <div class="flex gap-3 mt-3">
+          <input id="archivePrivateInput" type="text" placeholder="private message..." class="flex-1 bg-[#0f0022] border-2 border-pink-400 rounded-3xl px-6 py-4 text-sm neon-cyan">
+          <button onclick="postArchivePrivate()" class="px-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">SEND</button>
+        </div>
+      </div>
+      <div class="flex gap-4 mt-8">
+        <button onclick="saveArchiveToCalendar()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">SAVE MEMORY TO CALENDAR</button>
+        <button onclick="deleteArchive()" class="flex-1 py-5 bg-red-600 text-white rounded-3xl">DELETE ARCHIVE FOREVER</button>
+      </div>
+    </div>
+  </div>
   <!-- NUKE MODAL -->
   <div id="nukeModal" onclick="if(event.target.id==='nukeModal')closeNukeModal()" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center z-[60]">
     <div onclick="event.stopImmediatePropagation()" class="modal-full card rounded-3xl p-8 overflow-y-auto text-center">
@@ -433,6 +466,7 @@
     let currentDetailPostId = null;
     let particles = [];
     let moods = [];
+    let archives = [];
     let currentMonth = 2;
     let currentYear = 2026;
     let pendingNukeMinutes = 0;
@@ -443,7 +477,7 @@
     let unreadNotifications = {};
     let calendarMode = 'alter';
     let returnToModal = null;
-    let eulogyText = '';
+    let currentArchiveIndex = null;
     const moodOptions = ['😡','😢','😎','🥰','🔥','🌑','🌀'];
     function loadData() {
       if (localStorage.getItem('voidscreams')) screams = JSON.parse(localStorage.getItem('voidscreams'));
@@ -456,6 +490,8 @@
       else dmMessages = {};
       if (localStorage.getItem('voidNotifications')) unreadNotifications = JSON.parse(localStorage.getItem('voidNotifications'));
       else unreadNotifications = {};
+      if (localStorage.getItem('voidArchives')) archives = JSON.parse(localStorage.getItem('voidArchives'));
+      else archives = [];
       if (alters.length > 0) currentAlterIndex = 0;
     }
     function saveData() {
@@ -464,6 +500,7 @@
       localStorage.setItem('voidmoods', JSON.stringify(moods));
       localStorage.setItem('voidDMs', JSON.stringify(dmMessages));
       localStorage.setItem('voidNotifications', JSON.stringify(unreadNotifications));
+      localStorage.setItem('voidArchives', JSON.stringify(archives));
     }
     function createFalling() {
       const container = document.getElementById('abyss-fall');
@@ -619,6 +656,22 @@
         div.onclick = (e) => { if (e.target.type !== 'file' && !e.target.closest('button')) { currentAlterIndex = i; unreadNotifications[i] = 0; saveData(); updateComposerUI(); updateDMNotificationBadge(); closeAltersModal(); } };
         list.appendChild(div);
       });
+      // Add archive section if any
+      if (archives.length > 0) {
+        const archiveHeader = document.createElement('div');
+        archiveHeader.className = 'neon-lime text-xs mt-8 mb-3 px-4';
+        archiveHeader.textContent = 'MEMORY ARCHIVES';
+        list.appendChild(archiveHeader);
+        archives.forEach((arch, idx) => {
+          const aDiv = document.createElement('div');
+          aDiv.className = 'flex items-center gap-4 p-4 rounded-3xl cursor-pointer hover:bg-zinc-800 border border-pink-400/30';
+          aDiv.innerHTML = `
+            <div class="flex-1"><div class="font-bold">${arch.name}</div><div class="text-xs neon-pink">departed</div></div>
+          `;
+          aDiv.onclick = () => openMemoryArchive(idx);
+          list.appendChild(aDiv);
+        });
+      }
       setTimeout(drawMoodGraph, 100);
       document.getElementById('altersModal').classList.remove('hidden');
     }
@@ -1041,31 +1094,20 @@
       document.getElementById('alterDeathModal').classList.add('hidden');
     }
     function confirmAlterDeath() {
-      eulogyText = document.getElementById('eulogyText').value.trim() || "A quiet departure into the void.";
+      const eulogy = document.getElementById('eulogyText').value.trim() || "A quiet departure into the void.";
+      const name = alters[currentAlterIndex].name;
+      archives.push({
+        id: Date.now(),
+        name: name,
+        eulogy: eulogy,
+        sharedChat: [],
+        privateDMs: {}
+      });
+      alters.splice(currentAlterIndex, 1);
+      if (currentAlterIndex >= alters.length) currentAlterIndex = 0;
+      saveData();
       closeAlterDeathModal();
-      const listHTML = alters.map((alt, i) => i !== 0 ? `<button onclick="killAlterWithEulogy(${i});event.stopImmediatePropagation()" class="block w-full py-4 text-left px-6 hover:bg-zinc-800">${alt.name}</button>` : '').join('');
-      const tempConfirm = document.createElement('div');
-      tempConfirm.id = 'tempAlterConfirm';
-      tempConfirm.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:72;display:flex;align-items:center;justify-content:center;';
-      tempConfirm.innerHTML = `
-        <div class="modal-full card rounded-3xl p-8 text-center max-w-md">
-          <h2 class="neon-pink text-3xl font-black">CHOOSE THE DEPARTED</h2>
-          <p class="neon-cyan text-sm mt-4">${eulogyText}</p>
-          <div class="mt-8 space-y-2">${listHTML}</div>
-          <button onclick="document.getElementById('tempAlterConfirm').remove()" class="mt-8 w-full py-4 border-2 border-zinc-700 rounded-3xl">CANCEL</button>
-        </div>
-      `;
-      document.body.appendChild(tempConfirm);
-    }
-    function killAlterWithEulogy(index) {
-      const eulogyContainer = document.getElementById('tempAlterConfirm');
-      if (eulogyContainer) eulogyContainer.remove();
-      if (confirm(`Permanently separate ${alters[index].name}?`)) {
-        alters.splice(index, 1);
-        if (currentAlterIndex >= alters.length) currentAlterIndex = 0;
-        saveData();
-        showAltersModal();
-      }
+      showAltersModal();
     }
     function confirmNuke(minutes) {
       pendingNukeMinutes = minutes;
@@ -1132,6 +1174,82 @@
         img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
+    }
+    function openMemoryArchive(idx) {
+      currentArchiveIndex = idx;
+      const arch = archives[idx];
+      document.getElementById('archiveAlterName').textContent = arch.name;
+      document.getElementById('archiveEulogy').innerHTML = arch.eulogy;
+      renderArchiveSharedChat();
+      renderArchivePrivateDM();
+      document.getElementById('memoryArchiveModal').classList.remove('hidden');
+    }
+    function closeMemoryArchiveModal() {
+      document.getElementById('memoryArchiveModal').classList.add('hidden');
+    }
+    function renderArchiveSharedChat() {
+      const container = document.getElementById('archiveSharedChat');
+      container.innerHTML = '';
+      const arch = archives[currentArchiveIndex];
+      (arch.sharedChat || []).forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'text-sm neon-cyan';
+        div.textContent = msg;
+        container.appendChild(div);
+      });
+    }
+    function postArchiveShared() {
+      const input = document.getElementById('archiveSharedInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const arch = archives[currentArchiveIndex];
+      if (!arch.sharedChat) arch.sharedChat = [];
+      arch.sharedChat.push(text);
+      saveData();
+      input.value = '';
+      renderArchiveSharedChat();
+    }
+    function renderArchivePrivateDM() {
+      const container = document.getElementById('archivePrivateDM');
+      container.innerHTML = '';
+      const arch = archives[currentArchiveIndex];
+      const key = `${currentAlterIndex}`;
+      const msgs = (arch.privateDMs && arch.privateDMs[key]) || [];
+      msgs.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'text-sm neon-pink';
+        div.textContent = msg;
+        container.appendChild(div);
+      });
+    }
+    function postArchivePrivate() {
+      const input = document.getElementById('archivePrivateInput');
+      const text = input.value.trim();
+      if (!text) return;
+      const arch = archives[currentArchiveIndex];
+      if (!arch.privateDMs) arch.privateDMs = {};
+      const key = `${currentAlterIndex}`;
+      if (!arch.privateDMs[key]) arch.privateDMs[key] = [];
+      arch.privateDMs[key].push(text);
+      saveData();
+      input.value = '';
+      renderArchivePrivateDM();
+    }
+    function saveArchiveToCalendar() {
+      const arch = archives[currentArchiveIndex];
+      const dateStr = `${currentYear}-03-${Math.floor(Math.random()*31)+1}`.padStart(2,'0');
+      moods.push({ date: dateStr, alterIndex: currentAlterIndex, mood: '🪦', note: arch.eulogy });
+      saveData();
+      alert("Memory saved to your calendar.");
+      closeMemoryArchiveModal();
+    }
+    function deleteArchive() {
+      if (confirm("Delete this archive forever?")) {
+        archives.splice(currentArchiveIndex, 1);
+        saveData();
+        closeMemoryArchiveModal();
+        showAltersModal();
+      }
     }
     function initApp() {
       loadData();
