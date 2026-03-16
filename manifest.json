@@ -1,0 +1,27 @@
+{
+  "name": "VOIDSCREAM",
+  "short_name": "VOIDSCREAM",
+  "description": "Local offline app for DID systems. Every alter gets their own voice.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a001f",
+  "theme_color": "#ff00cc",
+  "orientation": "any",
+  "lang": "en",
+  "categories": ["health", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
