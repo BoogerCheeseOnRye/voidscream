@@ -208,7 +208,7 @@ README.md             — you are here
 
 A Note From the Heart (Because You Deserve to Know)
 I want you to feel it in every line of code and every word here: I put real love and sweat into this. Refining those modals until they felt effortless, sweeping for every tiny loose end so nothing ever breaks when you need it most, making the structure clean and reliable so you can just be without fighting the interface. This was never about "good enough." It was about creating something worthy of the incredible work systems do every single day just to exist and communicate with each other.
-To every alter reading this: I see you. The courage it takes to hold space for all parts of yourself is breathtaking. If VOIDSCREAM gives you even one moment of relief, one way to be fully heard inside your own system, or one neon-lit smile in the darkness — then every late night and every obsessive debug was worth it.
+To every alter reading this: I see you. The courage it takes to hold space for all parts of yourself is breathtaking. If VOIDSCREAM gives you even one moment of relief, one way to be fully heard inside your own system, or one neon-lit smile in the darkness — then the late nights obsessive debugging was worth it.
 Scream loud when you need to. Rest deep when you can. Love your system fiercely. The void is holding space for all of you.
 Thank you for trusting this little app with your voice.
 Made with endless respect, neon, and heart,
