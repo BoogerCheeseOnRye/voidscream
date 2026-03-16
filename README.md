@@ -1,4 +1,4 @@
-VOIDSCREAM v1.1
+VOIDSCREAM v2
 The Abyss That Listens – Offline DID Helper
 To every alter, every system, every part of you navigating the beautiful, chaotic reality of multiplicity: this is for you. I built this with every ounce of care I have.
 Hey friend.
