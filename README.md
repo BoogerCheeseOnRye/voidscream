@@ -164,21 +164,29 @@ vs_counsel_mem      object   counselor memory context per alter id
 
 ## Installing as an App
 
-VOIDSCREAM ships with a `manifest.json` and `sw.js` service worker, making it a fully installable PWA:
+VOIDSCREAM ships with a `manifest.json` and `sw.js` service worker, making it a fully installable PWA.
 
-**iPhone / iPad**
-1. Open Safari → navigate to the app URL
-2. Tap Share → Add to Home Screen
-3. Name it `VOIDSCREAM` → Add
+**Live PWA URL:** https://boogercheeseonrye.github.io/voidscream/
+
+**iPhone / iPad (recommended)**
+1. Open **Safari** — go to https://boogercheeseonrye.github.io/voidscream/
+2. Tap the **Share button** (square with arrow at bottom)
+3. Scroll down → tap **"Add to Home Screen"**
+4. Name it `VOIDSCREAM` → tap **Add**
+5. Open from your home screen — full screen, no Safari chrome, works offline
+
+> **Note:** Do NOT use Chrome or other browsers on iOS — only Safari supports "Add to Home Screen" as a proper PWA. Other browsers will just create a bookmark, not a standalone app.
 
 **Android (Chrome)**
-1. Open Chrome → navigate to the app URL
+1. Open Chrome → navigate to https://boogercheeseonrye.github.io/voidscream/
 2. Tap the three-dot menu → Add to Home Screen
 3. Accept the install prompt when it appears
 
-**Android APK**
-1. Upload `voidscream-app.zip` to [html2app.dev](https://html2app.dev) or [pwabuilder.com](https://pwabuilder.com)
-2. Download the generated APK and sideload it on your device
+**Desktop**
+1. Open any browser → navigate to https://boogercheeseonrye.github.io/voidscream/
+2. Works directly in the browser — all data stays in localStorage
+
+**Offline use:** After the first load, the service worker caches everything. The app works fully offline after that — no internet required.
 
 ---
 
