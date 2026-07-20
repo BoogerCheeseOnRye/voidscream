@@ -2142,11 +2142,12 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
       errEl.classList.add('hidden');
       if (!pw) { errEl.textContent = 'Enter your password.'; errEl.classList.remove('hidden'); return; }
       const stored = _getSysPw();
-      if (!stored) { document.getElementById('gate0').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); initApp(); return; }
+      if (!stored) { document.getElementById('gate0').classList.add('hidden'); document.getElementById('gate1').classList.add('hidden'); document.getElementById('app').classList.remove('hidden'); initApp(); return; }
       const hash = await hashPassword(pw, stored.salt);
       if (hash === stored.hash) {
         document.getElementById('gate0-pw').value = '';
         document.getElementById('gate0').classList.add('hidden');
+        document.getElementById('gate1').classList.add('hidden');
         document.getElementById('app').classList.remove('hidden');
         initApp();
       } else {
@@ -5675,6 +5676,9 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
         return;
       }
       if (alters.length > 0) {
+        document.getElementById('gate1').classList.add('hidden');
+        document.getElementById('gate2').classList.add('hidden');
+        document.getElementById('gate3').classList.add('hidden');
         const sysPw = _getSysPw();
         if (sysPw) {
           const infoEl = document.getElementById('gate0-info');
