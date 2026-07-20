@@ -36,6 +36,16 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
     #feed::-webkit-scrollbar, #alters-list::-webkit-scrollbar, #commentsList::-webkit-scrollbar, 
     #calendarGrid::-webkit-scrollbar, #dmMessages::-webkit-scrollbar, #friends-list::-webkit-scrollbar { display: none; }
     body { 
+      overflow-x: hidden;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    #vs-root, #vs-root * { box-sizing: border-box; }
+    [id$="Modal"], [id$="Modal"] > div, [id$="modal"] > div {
+      overflow-x: hidden;
+    }
+    .modal-full, .alter-edit-fullscreen { overflow-x: hidden; }
+    body { 
       background: #000;
       font-family: system-ui, sans-serif; 
       height: 100dvh; 
@@ -1193,14 +1203,14 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
   <!-- CALENDAR MODAL -->
   <div id="calendarModal" class="hidden fixed inset-0 z-[60] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
     <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
-      <div class="flex items-center justify-between mb-6">
-        <button onclick="returnToModal='calendarModal';closeCalendarModal();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm">
+      <div class="flex items-center justify-between mb-6 gap-2 min-w-0">
+        <button onclick="returnToModal='calendarModal';closeCalendarModal();showAltersModal()" class="flex items-center gap-2 neon-cyan text-sm flex-shrink-0">
           <i class="fa fa-users text-xl"></i>
-          <span class="font-bold">SWITCH ALTER</span>
+          <span class="font-bold hidden sm:inline">SWITCH ALTER</span>
         </button>
-        <div onclick="prevMonth()" class="neon-cyan text-3xl cursor-pointer px-2">‹</div>
-        <div id="calendarTitle" onclick="_openCalMonthYearPicker()" class="neon-pink text-xl font-black cursor-pointer flex items-center gap-1.5">MARCH 2026 <i class="fa-solid fa-chevron-down text-[11px] text-zinc-500"></i></div>
-        <div onclick="nextMonth()" class="neon-cyan text-3xl cursor-pointer px-2">›</div>
+        <div onclick="prevMonth()" class="neon-cyan text-3xl cursor-pointer px-2 flex-shrink-0">‹</div>
+        <div id="calendarTitle" onclick="_openCalMonthYearPicker()" class="neon-pink text-xl font-black cursor-pointer flex items-center gap-1.5 min-w-0 truncate flex-shrink">MARCH 2026 <i class="fa-solid fa-chevron-down text-[11px] text-zinc-500 flex-shrink-0"></i></div>
+        <div onclick="nextMonth()" class="neon-cyan text-3xl cursor-pointer px-2 flex-shrink-0">›</div>
       </div>
       <div class="calendar-grid text-center text-xs mb-4">
         <div class="font-bold text-cyan-400">S</div><div class="font-bold text-cyan-400">M</div><div class="font-bold text-cyan-400">T</div><div class="font-bold text-cyan-400">W</div><div class="font-bold text-cyan-400">T</div><div class="font-bold text-cyan-400">F</div><div class="font-bold text-cyan-400">S</div>
@@ -1314,9 +1324,9 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
   <!-- MEMORY ARCHIVE MODAL -->
   <div id="memoryArchiveModal" class="hidden fixed inset-0 z-[75] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
     <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
-      <div class="flex justify-between mb-6">
-        <div id="archiveAlterName" class="neon-pink text-3xl font-black"></div>
-        <button onclick="closeMemoryArchiveModal()" class="text-4xl neon-cyan">×</button>
+      <div class="flex justify-between items-start mb-6 min-w-0 gap-3">
+        <div id="archiveAlterName" class="neon-pink text-2xl font-black truncate min-w-0 flex-1"></div>
+        <button onclick="closeMemoryArchiveModal()" class="text-4xl neon-cyan flex-shrink-0">×</button>
       </div>
       <div id="archiveEulogy" class="bg-[#0f0022] border border-[#ff00cc] rounded-3xl p-6 mb-6 text-sm neon-cyan"></div>
       <div class="mb-6">
@@ -1335,9 +1345,9 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
           <button onclick="postArchivePrivate()" class="px-8 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black rounded-3xl">SEND</button>
         </div>
       </div>
-      <div class="flex gap-4 mt-8">
-        <button onclick="saveArchiveToCalendar()" class="flex-1 py-5 border-2 border-zinc-700 rounded-3xl text-lg">SAVE MEMORY TO CALENDAR</button>
-        <button onclick="deleteArchive()" class="flex-1 py-5 bg-red-600 text-white rounded-3xl">DELETE ARCHIVE FOREVER</button>
+      <div class="flex flex-col sm:flex-row gap-3 mt-8">
+        <button onclick="saveArchiveToCalendar()" class="flex-1 py-4 border-2 border-zinc-700 rounded-3xl text-sm font-bold">SAVE MEMORY TO CALENDAR</button>
+        <button onclick="deleteArchive()" class="flex-1 py-4 bg-red-600 text-white rounded-3xl text-sm font-bold">DELETE ARCHIVE FOREVER</button>
       </div>
     </div>
   </div>
@@ -1469,7 +1479,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
   <div id="alterDeathModal" class="hidden fixed inset-0 z-[71] flex flex-col" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
     <div class="flex-1 overflow-y-auto px-5 py-5 flex flex-col">
       <div class="flex justify-between items-center mb-4">
-        <div class="neon-pink text-3xl font-black">EULOGY FOR DEPARTED ALTER</div>
+        <div class="neon-pink text-2xl font-black truncate min-w-0">EULOGY FOR DEPARTED ALTER</div>
         <button onclick="closeAlterDeathModal()" class="text-4xl neon-cyan">×</button>
       </div>
       <textarea id="eulogyText" rows="8" class="w-full bg-[#0f0022] border-2 border-[#ff00cc] rounded-3xl p-4 text-lg neon-cyan resize-none" placeholder="They fought bravely in the shadows... They protected the system when no one else could..."></textarea>
@@ -1483,7 +1493,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
   <div id="nukeConfirmModal" class="hidden fixed inset-0 z-[70] flex flex-col items-center justify-center" style="background:linear-gradient(180deg,#0a001f 0%,#000000 100%)">
     <div class="w-full px-8 py-8 flex flex-col text-center">
       <h2 id="confirmModalTitle" class="neon-pink text-3xl font-black mb-6">ARE YOU SURE?</h2>
-      <p id="confirmText" class="neon-cyan text-sm mb-8"></p>
+      <p id="confirmText" class="neon-cyan text-sm mb-8" style="word-break:break-word"></p>
       <div class="flex gap-4">
         <button onclick="closeNukeConfirm()" class="flex-1 py-6 rounded-3xl border-2 border-zinc-700 font-medium text-lg">NEVERMIND</button>
         <button id="confirmModalYesBtn" onclick="executeNukeOrWipe()" class="flex-1 py-6 bg-gradient-to-r from-[#ff00cc] to-[#00ffff] text-[#0a001f] font-black text-xl rounded-3xl">YES NUKE IT</button>
@@ -1498,7 +1508,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
     <div class="relative w-full max-w-sm flex flex-col items-center text-center">
       <div class="text-6xl mb-5" style="filter:drop-shadow(0 0 18px #ff4400)">🔒</div>
       <div class="text-[10px] font-black tracking-[.4em] mb-2" style="color:#ff4400;text-shadow:0 0 14px #ff4400">BOOTLOADER LOCKED</div>
-      <div id="btlLockerName" class="text-white text-3xl font-black mb-1" style="text-shadow:0 0 20px rgba(255,68,0,.5)"></div>
+      <div id="btlLockerName" class="text-white text-3xl font-black mb-1 w-full truncate" style="text-shadow:0 0 20px rgba(255,68,0,.5)"></div>
       <div class="text-zinc-500 text-sm mb-1">has locked the system.</div>
       <div class="text-zinc-600 text-xs mb-8">Held with love. Only they can open this.</div>
       <input id="btlUnlockPw" type="password" placeholder="enter their password…"
@@ -3123,12 +3133,12 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
       if (!post) return;
       const detailPost = document.getElementById('detailPost');
       const alter = alters[post.alterIndex] || {name: "Unknown", handle: "@voidanon", avatar: "https://picsum.photos/id/64/128", color: "#c026d3"};
-      let contentHTML = `<p class="text-xl neon-cyan">${post.text}</p>`;
+      let contentHTML = `<p class="text-xl neon-cyan" style="word-break:break-word;overflow-wrap:anywhere">${post.text}</p>`;
       if (post.media) {
         const lower = post.media.toLowerCase();
         if (lower.endsWith('.mp4') || lower.endsWith('.webm')) contentHTML += `<div class="image-wrapper mt-4"><video src="${post.media}" class="post-video" controls></video></div>`;
         else if (lower.match(/\.(jpg|jpeg|png|gif|webp)$/)) contentHTML += `<div class="image-wrapper mt-4"><img src="${post.media}" class="post-image" onclick="viewMedia('${post.media}')"></div>`;
-        else contentHTML += `<div class="mt-4 text-cyan-400 underline"><a href="${post.media}" target="_blank" class="neon-cyan">${post.media}</a></div>`;
+        else contentHTML += `<div class="mt-4 text-cyan-400 underline" style="word-break:break-all;overflow-wrap:anywhere"><a href="${post.media}" target="_blank" class="neon-cyan">${post.media}</a></div>`;
       }
       const isPinned = post.pinnedBy && post.pinnedBy.includes(currentAlterIndex);
       const detailDMable = typeof post.alterIndex === 'number' && post.alterIndex !== currentAlterIndex;
@@ -3389,7 +3399,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
         const div = document.createElement('div');
         div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} group`;
         div.innerHTML = `
-          <div class="max-w-[70%] p-3 rounded-3xl transition-all" style="background:${isSelf ? senderColor : '#3f3f46'}; color:${isSelf ? '#0a001f' : '#fff'}; box-shadow: ${isSelf ? 'none' : '0 0 15px ' + senderColor}">
+          <div class="max-w-[70%] p-3 rounded-3xl transition-all" style="background:${isSelf ? senderColor : '#3f3f46'}; color:${isSelf ? '#0a001f' : '#fff'}; box-shadow: ${isSelf ? 'none' : '0 0 15px ' + senderColor}; overflow:hidden; word-break:break-word;">
             <span class="text-[10px] opacity-70">${senderName}</span>${m.text}
             ${isSelf && m.read ? `<span class="text-xs block text-right opacity-60">✓✓ read</span>` : ''}
           </div>
