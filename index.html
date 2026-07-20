@@ -177,7 +177,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
       gap: 8px;
     }
     @media (min-width: 600px) and (orientation: landscape) {
-      #vs-root { max-width: 860px; }
+      #vs-root { max-width: min(92vw, 1100px); }
       #app { flex-direction: row !important; align-items: stretch; }
       #app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
       .app-sidebar { display: flex; }
@@ -2499,23 +2499,6 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
       if (pronounsEl) pronounsEl.textContent = alter.pronouns || '';
       loadCurrentTheme();
     }
-    function renderMoodPicker() {
-      const container = document.getElementById('moodPicker');
-      container.innerHTML = '';
-      moodOptions.forEach(m => {
-        const btn = document.createElement('div');
-        btn.className = `mood-btn ${m === selectedScreamMood ? 'selected' : ''}`;
-        btn.textContent = m;
-        btn.onclick = () => {
-          selectedScreamMood = m;
-          document.getElementById('customMoodInput').value = '';
-          const moodTheme = moodToTheme[m] || 'abyss';
-          applyTheme(moodTheme);
-          renderMoodPicker();
-        };
-        container.appendChild(btn);
-      });
-    }
     function toggleSaveMode() {
       saveToThisAlterOnly = !saveToThisAlterOnly;
       const el = document.getElementById('saveToggle');
@@ -2539,7 +2522,8 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
       const role = _getAlterDisplayRole(alt);
       if (!role) return '';
       const sz = fontSize || '0.6em';
-      return `<span class="role-badge" style="font-size:${sz};color:${alt.color};border-color:${alt.color};background:${alt.color}15">${_esc(role)}</span>`;
+      const c = alt.color || '#00ffff';
+      return `<span class="role-badge" style="font-size:${sz};color:${c};border-color:${c};background:${c}15">${_esc(role)}</span>`;
     }
     let editingAlterIndex = null;
     function showAltersModal() {
@@ -4477,6 +4461,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
     let _bootloaderLockPhase2 = false;
     function confirmWipeAll() {
       _pendingWipeAll = true;
+      _resetConfirmModal();
       const textEl = document.getElementById('confirmText');
       textEl.textContent = 'Delete ALL data — every alter, scream, DM, mood, and memory? This is permanent and cannot be undone.';
       document.getElementById('nukeModal').classList.add('hidden');
@@ -4491,6 +4476,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
     }
     function clearOurHead() {
       _pendingClearOurHead = true;
+      _resetConfirmModal();
       const name = (alters[currentAlterIndex] || {}).name || 'this alter';
       document.getElementById('confirmText').textContent = `Clear ${name}'s entire feed? Every scream they posted will be deleted. This cannot be undone.`;
       document.getElementById('nukeModal').classList.add('hidden');
@@ -4504,6 +4490,7 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
     }
     function rebootSystem() {
       _pendingReboot = true;
+      _resetConfirmModal();
       document.getElementById('confirmText').textContent = 'Remove the system password lock? The app will reload — anyone can open it without a password until you set a new lock.';
       document.getElementById('nukeModal').classList.add('hidden');
       document.getElementById('nukeConfirmModal').classList.remove('hidden');
@@ -5522,17 +5509,23 @@ console.log('%c[VoidScream] Gemma local model skipped (MIME fixed)', 'color:#00f
       _stopRingtone();
       _callTarget = null;
       _callStart = null;
+      document.getElementById('callPhase1').classList.remove('hidden');
+      document.getElementById('callPhase1').style.display = 'flex';
+      document.getElementById('callPhase2').classList.add('hidden');
+      document.getElementById('callPhase2').style.display = 'none';
+      document.getElementById('callPhase3').classList.add('hidden');
+      document.getElementById('callPhase3').style.display = 'none';
       document.getElementById('callModal').classList.add('hidden');
     }
 
     function _sendCallDM(targetIdx, text) {
-      if (!dms[currentAlterIndex]) dms[currentAlterIndex] = {};
-      if (!dms[currentAlterIndex][targetIdx]) dms[currentAlterIndex][targetIdx] = [];
+      if (!dmMessages[currentAlterIndex]) dmMessages[currentAlterIndex] = {};
+      if (!dmMessages[currentAlterIndex][targetIdx]) dmMessages[currentAlterIndex][targetIdx] = [];
       const msg = { from: currentAlterIndex, to: targetIdx, text, ts: Date.now(), isCall: true };
-      dms[currentAlterIndex][targetIdx].push(msg);
-      if (!dms[targetIdx]) dms[targetIdx] = {};
-      if (!dms[targetIdx][currentAlterIndex]) dms[targetIdx][currentAlterIndex] = [];
-      dms[targetIdx][currentAlterIndex].push(msg);
+      dmMessages[currentAlterIndex][targetIdx].push(msg);
+      if (!dmMessages[targetIdx]) dmMessages[targetIdx] = {};
+      if (!dmMessages[targetIdx][currentAlterIndex]) dmMessages[targetIdx][currentAlterIndex] = [];
+      dmMessages[targetIdx][currentAlterIndex].push(msg);
       saveData();
       updateDMNotificationBadge();
     }
